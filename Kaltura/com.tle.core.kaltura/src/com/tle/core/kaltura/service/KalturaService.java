@@ -3,7 +3,7 @@ package com.tle.core.kaltura.service;
 import java.util.Collection;
 import java.util.List;
 
-import com.dytech.edge.exceptions.InvalidDataException;
+import com.tle.common.beans.exception.InvalidDataException;
 import com.kaltura.client.KalturaApiException;
 import com.kaltura.client.KalturaClient;
 import com.kaltura.client.enums.KalturaSessionType;
@@ -12,8 +12,8 @@ import com.kaltura.client.types.KalturaMediaListResponse;
 import com.kaltura.client.types.KalturaUiConf;
 import com.tle.common.kaltura.entity.KalturaServer;
 import com.tle.common.kaltura.service.RemoteKalturaService;
-import com.tle.core.services.entity.AbstractEntityService;
-import com.tle.core.services.entity.EntityEditingBean;
+import com.tle.core.entity.service.AbstractEntityService;
+import com.tle.core.entity.EntityEditingBean;
 
 public interface KalturaService extends AbstractEntityService<EntityEditingBean, KalturaServer>, RemoteKalturaService
 {

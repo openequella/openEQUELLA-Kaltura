@@ -3,7 +3,7 @@ package com.tle.core.kaltura.dao;
 import javax.inject.Singleton;
 
 import com.tle.common.kaltura.entity.KalturaServer;
-import com.tle.core.dao.impl.AbstractEntityDaoImpl;
+import com.tle.core.entity.dao.impl.AbstractEntityDaoImpl;
 import com.tle.core.guice.Bind;
 
 @Bind(KalturaDao.class)

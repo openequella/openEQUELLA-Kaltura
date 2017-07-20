@@ -6,7 +6,7 @@ import com.tle.common.kaltura.entity.KalturaServer;
 import com.tle.common.security.PrivilegeTree.Node;
 import com.tle.core.guice.Bind;
 import com.tle.core.kaltura.service.KalturaService;
-import com.tle.core.security.AbstractEntityPrivilegeTreeProvider;
+import com.tle.core.entity.security.AbstractEntityPrivilegeTreeProvider;
 import com.tle.web.resources.PluginResourceHelper;
 import com.tle.web.resources.ResourcesService;
 

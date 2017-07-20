@@ -10,14 +10,14 @@ import com.dytech.devlib.PropBagEx;
 import com.tle.common.Check;
 import com.tle.common.kaltura.admin.control.KalturaSettings;
 import com.tle.common.kaltura.entity.KalturaServer;
-import com.tle.common.util.XmlDocument;
-import com.tle.common.util.XmlDocument.NodeListIterable;
-import com.tle.core.filesystem.SubTemporaryFile;
-import com.tle.core.filesystem.TemporaryFileHandle;
+import com.tle.core.xml.XmlDocument;
+import com.tle.core.xml.XmlDocument.NodeListIterable;
+import com.tle.common.filesystem.handle.SubTemporaryFile;
+import com.tle.common.filesystem.handle.TemporaryFileHandle;
 import com.tle.core.guice.Bind;
 import com.tle.core.institution.convert.ConverterParams;
 import com.tle.core.institution.convert.InstitutionInfo;
-import com.tle.core.institution.migration.XmlMigrator;
+import com.tle.core.institution.convert.XmlMigrator;
 
 @Bind
 @Singleton

@@ -3,7 +3,6 @@
 	<requires>
 		<import plugin-id="com.tle.common.i18n" />
 		<import plugin-id="com.tle.common.kaltura" />
-		<import plugin-id="com.tle.core.entity.services" />
 		<import plugin-id="com.tle.core.guice" />
 		<import plugin-id="com.tle.core.services" />
 		<import plugin-id="com.tle.core.hibernate" />
@@ -46,11 +45,6 @@
 		<parameter id="date" value="1970-01-01" />
 	</extension>
 
-	<extension plugin-id="com.tle.core.entity.services" point-id="xmlmigration" id="migrateKalturaSettingsXml">
-		<parameter id="id" value="com.tle.core.kaltura.migration.MigrateKalturaSettingsXml" />
-		<parameter id="bean" value="bean:com.tle.core.kaltura.migration.MigrateKalturaSettingsXml" />
-	</extension>
-
 	<extension plugin-id="com.tle.core.migration" point-id="migration" id="migrateKalturaControls">
 		<parameter id="id" value="com.tle.core.kaltura.migration.UpdateKalturaControlsMigration" />
 		<parameter id="bean" value="bean:com.tle.core.kaltura.migration.UpdateKalturaControlsMigration" />
@@ -58,22 +52,11 @@
 		<parameter id="date" value="1970-01-01" />
 	</extension>
 
-	<extension plugin-id="com.tle.core.entity.services" point-id="xmlmigration" id="migrateKalturaControlsXml">
-		<parameter id="id" value="com.tle.core.kaltura.migration.UpdateKalturaControlsXmlMigration" />
-		<parameter id="bean" value="bean:com.tle.core.kaltura.migration.UpdateKalturaControlsXmlMigration" />
-		<parameter id="depends" value="com.tle.core.kaltura.migration.MigrateKalturaSettingsXml" />
-	</extension>
-
 	<extension plugin-id="com.tle.core.migration" point-id="migration" id="updateKalturaAttachments">
 		<parameter id="id" value="com.tle.core.kaltura.migration.UpdateKalturaAttachmentsMigration" />
 		<parameter id="bean" value="bean:com.tle.core.kaltura.migration.UpdateKalturaAttachmentsMigration" />
 		<parameter id="depends" value="com.tle.core.kaltura.migration.MigrateKalturaSettings" />
 		<parameter id="date" value="1970-01-01" />
-	</extension>
-
-	<extension plugin-id="com.tle.core.entity.services" point-id="itemxmlmigration" id="updateKalturaAttachmentsXml">
-		<parameter id="id" value="com.tle.core.kaltura.migration.UpdateKalturaAttachmentsXmlMigration" />
-		<parameter id="bean" value="bean:com.tle.core.kaltura.migration.UpdateKalturaAttachmentsXmlMigration" />
 	</extension>
 
 	<extension plugin-id="com.tle.core.migration" point-id="initialSchema" id="kalturaSchemaObjects">

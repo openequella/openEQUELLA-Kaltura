@@ -13,7 +13,7 @@ import com.tle.core.kaltura.service.KalturaService;
 import com.tle.core.security.TLEAclManager;
 import com.tle.web.freemarker.FreemarkerFactory;
 import com.tle.web.freemarker.annotations.ViewFactory;
-import com.tle.web.i18n.BundleCache;
+import com.tle.core.i18n.BundleCache;
 import com.tle.web.resources.ResourcesService;
 import com.tle.web.sections.SectionInfo;
 import com.tle.web.sections.SectionResult;

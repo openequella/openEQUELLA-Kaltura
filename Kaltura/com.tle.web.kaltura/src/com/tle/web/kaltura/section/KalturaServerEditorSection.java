@@ -9,8 +9,8 @@ import java.util.UUID;
 
 import javax.inject.Inject;
 
-import com.dytech.edge.common.valuebean.ValidationError;
-import com.dytech.edge.exceptions.InvalidDataException;
+import com.tle.common.beans.exception.ValidationError;
+import com.tle.common.beans.exception.InvalidDataException;
 import com.google.common.collect.Lists;
 import com.kaltura.client.enums.KalturaSessionType;
 import com.kaltura.client.types.KalturaUiConf;
@@ -23,7 +23,7 @@ import com.tle.core.guice.Bind;
 import com.tle.core.kaltura.service.KalturaService;
 import com.tle.web.freemarker.FreemarkerFactory;
 import com.tle.web.freemarker.annotations.ViewFactory;
-import com.tle.web.i18n.BundleNameValue;
+import com.tle.core.i18n.BundleNameValue;
 import com.tle.web.resources.ResourcesService;
 import com.tle.web.sections.SectionInfo;
 import com.tle.web.sections.SectionResult;
