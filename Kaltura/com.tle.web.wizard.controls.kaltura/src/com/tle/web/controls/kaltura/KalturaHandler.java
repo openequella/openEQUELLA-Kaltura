@@ -35,7 +35,7 @@ import com.tle.web.controls.universal.AttachmentHandlerLabel;
 import com.tle.web.controls.universal.BasicAbstractAttachmentHandler;
 import com.tle.web.controls.universal.DialogRenderOptions;
 import com.tle.web.controls.universal.UniversalControlState;
-import com.tle.web.i18n.BundleCache;
+import com.tle.core.i18n.BundleCache;
 import com.tle.web.resources.ResourcesService;
 import com.tle.web.sections.SectionInfo;
 import com.tle.web.sections.SectionTree;
