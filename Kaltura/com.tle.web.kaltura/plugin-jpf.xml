@@ -4,9 +4,11 @@
 		<import plugin-id="com.tle.common.entity" />
 		<import plugin-id="com.tle.common.i18n" />
 		<import plugin-id="com.tle.core.security" />
+        <import plugin-id="com.tle.core.entity.security" />
+        <import plugin-id="com.tle.core.entity" />
 		<import plugin-id="com.tle.core.guice" />
 		<import plugin-id="com.tle.core.migration" />
-		<import plugin-id="com.tle.core.entity.services" />
+		<import plugin-id="com.tle.core.institution.convert" />-->
 		<import plugin-id="com.tle.web.freemarker" />
 		<import plugin-id="com.tle.web.sections" />
 		<import plugin-id="com.tle.web.sections.standard" />
@@ -59,7 +61,7 @@
 		<parameter id="date" value="1970-01-01" />
 	</extension>
 
-	<extension plugin-id="com.tle.core.entity.services" point-id="xmlmigration" id="addKalturaMimeTypeXmlMigration">
+	<extension plugin-id="com.tle.core.institution.convert" point-id="xmlmigration" id="addKalturaMimeTypeXmlMigration">
 		<parameter id="id" value="com.tle.web.kaltura.migration.AddKalturaMimeTypeXmlMigration" />
 		<parameter id="bean" value="bean:com.tle.web.kaltura.migration.AddKalturaMimeTypeXmlMigration" />
 	</extension>
