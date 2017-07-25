@@ -9,14 +9,14 @@ import javax.inject.Singleton;
 import com.tle.common.i18n.LangUtils;
 import com.tle.common.kaltura.KalturaUtils;
 import com.tle.common.kaltura.entity.KalturaServer;
-import com.tle.core.filesystem.BucketFile;
+import com.tle.common.filesystem.handle.BucketFile;
 import com.tle.core.filesystem.EntityFile;
-import com.tle.core.filesystem.SubTemporaryFile;
-import com.tle.core.filesystem.TemporaryFileHandle;
+import com.tle.common.filesystem.handle.SubTemporaryFile;
+import com.tle.common.filesystem.handle.TemporaryFileHandle;
 import com.tle.core.guice.Bind;
 import com.tle.core.institution.convert.ConverterParams;
 import com.tle.core.institution.convert.InstitutionInfo;
-import com.tle.core.institution.migration.XmlMigrator;
+import com.tle.core.institution.convert.XmlMigrator;
 
 @Bind
 @Singleton

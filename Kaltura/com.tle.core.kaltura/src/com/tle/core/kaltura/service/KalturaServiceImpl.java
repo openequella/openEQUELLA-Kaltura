@@ -11,8 +11,8 @@ import javax.inject.Inject;
 
 import org.springframework.transaction.annotation.Transactional;
 
-import com.dytech.edge.common.valuebean.ValidationError;
-import com.dytech.edge.exceptions.InvalidDataException;
+import com.tle.common.beans.exception.ValidationError;
+import com.tle.common.beans.exception.InvalidDataException;
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.base.Throwables;
@@ -47,9 +47,10 @@ import com.tle.core.kaltura.KalturaConstants;
 import com.tle.core.kaltura.dao.KalturaDao;
 import com.tle.core.security.impl.SecureEntity;
 import com.tle.core.security.impl.SecureOnReturn;
-import com.tle.core.services.entity.EntityEditingBean;
-import com.tle.core.services.entity.EntityEditingSession;
-import com.tle.core.services.entity.impl.AbstractEntityServiceImpl;
+import com.tle.core.entity.EntityEditingBean;
+import com.tle.core.entity.EntityEditingSession;
+import com.tle.core.entity.service.impl.AbstractEntityServiceImpl;
+
 
 @Bind(KalturaService.class)
 @Singleton

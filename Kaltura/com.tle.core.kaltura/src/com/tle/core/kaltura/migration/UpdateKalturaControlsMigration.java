@@ -26,7 +26,7 @@ import com.tle.beans.entity.LanguageBundle;
 import com.tle.beans.entity.LanguageString;
 import com.tle.common.Check;
 import com.tle.common.kaltura.KalturaUtils;
-import com.tle.common.util.XmlDocument;
+import com.tle.core.xml.XmlDocument;
 import com.tle.core.guice.Bind;
 import com.tle.core.hibernate.impl.HibernateMigrationHelper;
 import com.tle.core.migration.AbstractHibernateDataMigration;
