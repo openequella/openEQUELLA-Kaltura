@@ -6,9 +6,9 @@
 	<requires>
 		<import plugin-id="com.tle.admin.controls" />
 		<import plugin-id="com.tle.admin.controls.universal" />
-		<import plugin-id="com.tle.admin.schema.common" />
         <import plugin-id="com.tle.common.i18n" />
 		<import plugin-id="com.tle.common.kaltura" />
+		<import plugin-id="com.equella.admin" />
 	</requires>
 
 	<runtime>
