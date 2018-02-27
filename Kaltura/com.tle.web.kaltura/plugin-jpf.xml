@@ -9,13 +9,13 @@
     <import plugin-id="com.tle.core.security" />
     <import plugin-id="com.tle.core.entity" />
     <import plugin-id="com.tle.core.guice" />
+    <import plugin-id="com.tle.core.application" />
     <import plugin-id="com.tle.core.migration" />
     <import plugin-id="com.tle.core.institution.convert" />
     <import plugin-id="com.tle.web.freemarker" />
     <import plugin-id="com.tle.web.sections" />
     <import plugin-id="com.tle.web.sections.standard" />
     <import plugin-id="com.tle.web.sections.equella" />
-    <import plugin-id="com.tle.web.settings" />
     <import plugin-id="com.tle.web.viewurl" />
     <import plugin-id="com.tle.core.kaltura" />
     <import plugin-id="com.tle.web.viewitem" />
@@ -41,10 +41,6 @@
     <parameter id="path" value="/access/kalturasettings.do" />
     <parameter id="root" value="bean:/access/kalturasettings" />
   </extension>
-  <extension plugin-id="com.tle.web.settings" point-id="settingsExtension" id="kalturaSettingsLink">
-    <parameter id="class" value="bean:com.tle.web.kaltura.settings.KalturaSettingsLinkSection" />
-    <parameter id="grouping" value="externalsettings" />
-  </extension>
   <extension plugin-id="com.tle.core.security" point-id="privilegeTreeProviders" id="kalturaSettingsPrivilegeTreeProvider">
     <parameter id="provider" value="bean:com.tle.web.kaltura.settings.KalturaSettingsPrivilegeTreeProvider" />
   </extension>
@@ -69,5 +65,10 @@
   </extension>
   <extension plugin-id="com.tle.web.searching" point-id="videoPreviewRenderer" id="kalturaPreviewRenderer">
     <parameter id="bean" value="bean:com.tle.web.kaltura.viewer.KalturaPreviewRenderer" />
+  </extension>
+  <extension plugin-id="com.tle.core.application" point-id="onStartup" id="extensions">
+    <parameter id="bean" value="object:com.tle.web.kaltura.KalturaExtensions"/>
+    <parameter id="type" value="web" />
+    <parameter id="order" value="1" />
   </extension>
 </plugin>

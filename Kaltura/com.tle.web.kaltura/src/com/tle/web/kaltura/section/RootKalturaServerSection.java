@@ -11,7 +11,7 @@ import com.tle.common.i18n.CurrentLocale;
 import com.tle.core.guice.Bind;
 import com.tle.core.security.TLEAclManager;
 import com.tle.exceptions.AccessDeniedException;
-import com.tle.web.kaltura.settings.KalturaSettingsLinkSection;
+import com.tle.web.kaltura.KalturaExtensions;
 import com.tle.web.sections.SectionId;
 import com.tle.web.sections.SectionInfo;
 import com.tle.web.sections.SectionResult;
@@ -20,6 +20,7 @@ import com.tle.web.sections.equella.layout.OneColumnLayout;
 import com.tle.web.sections.equella.layout.OneColumnLayout.OneColumnLayoutModel;
 import com.tle.web.sections.events.RenderEventContext;
 import com.tle.web.sections.render.Label;
+import com.tle.web.settings.SettingsList;
 import com.tle.web.settings.menu.SettingsUtils;
 import com.tle.web.template.Breadcrumbs;
 import com.tle.web.template.Decorations;
@@ -59,7 +60,7 @@ public class RootKalturaServerSection extends OneColumnLayout<OneColumnLayoutMod
 
 		if( modalSection != null )
 		{
-			crumbs.add(KalturaSettingsLinkSection.getShowKalturaServerLink(info));
+			crumbs.add(SettingsList.asLinkOrNull(KalturaExtensions.kalturaSettings()));
 
 			SectionId section = info.getSectionForId(modalSection);
 			if( section instanceof ModalKalturaServerSection )
