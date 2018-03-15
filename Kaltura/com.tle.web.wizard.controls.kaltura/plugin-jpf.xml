@@ -11,6 +11,7 @@
     <import plugin-id="com.tle.web.api.item.equella.serializer" />
     <import plugin-id="com.tle.web.wizard.controls.universal" />
     <import plugin-id="com.tle.core.workflow.video" />
+    <import plugin-id="com.tle.web.sections" />
     <import plugin-id="com.tle.web.viewurl" />
     <import plugin-id="com.tle.web.wizard" />
     <import plugin-id="com.tle.web.selection" />
