@@ -52,10 +52,19 @@ public class KalturaAttachmentSerializer extends AbstractAttachmentSerializer
 			kbean.setUploadedDate(new Date(date));
 		}
 
-		final Long duration = (Long) cattach.getData(KalturaUtils.PROPERTY_DURATION);
+		final Object duration = cattach.getData(KalturaUtils.PROPERTY_DURATION);
 		if( duration != null )
 		{
-			kbean.setDuration(duration.intValue());
+			int durInt;
+			if (duration instanceof String)
+			{
+				durInt = Integer.parseInt((String) duration);
+			}
+			else
+			{
+				durInt = ((Number)duration).intValue();
+			}
+			kbean.setDuration(durInt);
 		}
 		return kbean;
 	}
