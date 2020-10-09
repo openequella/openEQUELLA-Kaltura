@@ -40,7 +40,7 @@ import org.hibernate.annotations.AccessType;
 import org.hibernate.annotations.Index;
 import org.hibernate.annotations.MapKeyType;
 import org.hibernate.annotations.Type;
-import org.hibernate.classic.Session;
+import org.hibernate.Session;
 
 import com.google.common.collect.Maps;
 import com.tle.core.guice.Bind;

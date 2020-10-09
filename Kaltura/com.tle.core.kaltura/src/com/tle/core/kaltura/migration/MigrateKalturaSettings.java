@@ -27,7 +27,7 @@ import javax.inject.Singleton;
 
 import org.hibernate.Query;
 import org.hibernate.SQLQuery;
-import org.hibernate.classic.Session;
+import org.hibernate.Session;
 
 import com.google.common.collect.Maps;
 import com.tle.beans.ConfigurationProperty;

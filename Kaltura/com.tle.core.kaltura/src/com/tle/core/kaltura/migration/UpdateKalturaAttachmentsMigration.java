@@ -41,7 +41,7 @@ import org.hibernate.annotations.FetchMode;
 import org.hibernate.annotations.Index;
 import org.hibernate.annotations.IndexColumn;
 import org.hibernate.annotations.Type;
-import org.hibernate.classic.Session;
+import org.hibernate.Session;
 
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
 import com.tle.beans.Institution;
