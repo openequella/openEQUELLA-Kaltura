@@ -35,7 +35,7 @@ import javax.persistence.OneToOne;
 import org.hibernate.Query;
 import org.hibernate.annotations.AccessType;
 import org.hibernate.annotations.Index;
-import org.hibernate.classic.Session;
+import org.hibernate.Session;
 
 import com.tle.beans.Institution;
 import com.tle.beans.entity.LanguageBundle;
