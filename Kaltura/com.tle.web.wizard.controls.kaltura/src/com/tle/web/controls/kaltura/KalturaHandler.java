@@ -123,13 +123,15 @@ public class KalturaHandler extends BasicAbstractAttachmentHandler<KalturaHandle
 	private static final int PER_PAGE = 10;
 
 	private static final CssInclude CSS = CssInclude
-		.include(ResourcesService.getResourceHelper(KalturaHandler.class).url("css/kaltura.css")).hasRtl().make();
+			.include(ResourcesService.getResourceHelper(KalturaHandler.class).url("css/kaltura.css")).hasRtl().make();
 
 	@PlugURL("images/kalturalogotrans.png")
 	private static String KALTURA_LOGO_URL;
 
 	@PlugURL("js/kaltura.js")
 	private static String KALTURA;
+	@PlugURL("js/UploadControlEntry.js")
+	private static String UPLOAD_CONTROL;
 	@PlugURL("js/kalturaopts.js")
 	private static String KALTURA_OPTS;
 
@@ -179,7 +181,7 @@ public class KalturaHandler extends BasicAbstractAttachmentHandler<KalturaHandle
 	@PlugKey("edit.players.default")
 	private static Label SERVER_DEFAULT;
 
-	private JSCallable setupKcwControl;
+	private JSCallable setupKalturaUpload;
 	private JSCallable finishedCallback;
 
 	@Inject
@@ -242,15 +244,15 @@ public class KalturaHandler extends BasicAbstractAttachmentHandler<KalturaHandle
 	{
 		super.registered(id, tree);
 		choice.setListModel(new EnumListModel<KalturaOption>(KEY_PREFIX_CHOICES, ".desc", true, KalturaOption.EXISTING,
-			KalturaOption.UPLOAD));
+				KalturaOption.UPLOAD));
 
 		search.setClickHandler(new OverrideHandler(events.getNamedHandler("searchClicked")).addValidator(
-			new SimpleValidator(new NotEqualsExpression(query.createGetExpression(), new StringExpression("")))
-				.setFailureStatements(Js.alert_s(EMPTY_QUERY_LABEL))));
+				new SimpleValidator(new NotEqualsExpression(query.createGetExpression(), new StringExpression("")))
+						.setFailureStatements(Js.alert_s(EMPTY_QUERY_LABEL))));
 
 		nextChoiceButton.setClickHandler(new ReloadHandler());
-		setupKcwControl = new ExternallyDefinedFunction("setupKCW", new IncludeFile(KALTURA), SwfObject.PRERENDER);
-
+		setupKalturaUpload = new ExternallyDefinedFunction("KalturaUploadaControl", new IncludeFile(
+				UPLOAD_CONTROL));
 		finishedCallback = events.getSubmitValuesFunction("finished");
 
 		JSCallable setAllFunction = selections.createSetAllFunction();
@@ -278,8 +280,8 @@ public class KalturaHandler extends BasicAbstractAttachmentHandler<KalturaHandle
 				}
 
 				KalturaMediaListResponse mediaList = kalturaService.searchMedia(
-					getKalturaClient(ks, KalturaSessionType.ADMIN), Lists.newArrayList(q), pager.getCurrentPage(info),
-					PER_PAGE);
+						getKalturaClient(ks, KalturaSessionType.ADMIN), Lists.newArrayList(q), pager.getCurrentPage(info),
+						PER_PAGE);
 
 				if( mediaList == null || mediaList.totalCount == 0 )
 				{
@@ -296,7 +298,7 @@ public class KalturaHandler extends BasicAbstractAttachmentHandler<KalturaHandle
 					KalturaResultOption result = new KalturaResultOption(entry.id);
 
 					final LinkRenderer titleLink = new PopupLinkRenderer(
-						new HtmlLinkState(new SimpleBookmark(createFlashEmbedUrl(ks, entry.id, uiConfId))));
+							new HtmlLinkState(new SimpleBookmark(createFlashEmbedUrl(ks, entry.id, uiConfId))));
 
 					titleLink.setLabel(new TextLabel(entry.name));
 					result.setLink(titleLink);
@@ -305,7 +307,7 @@ public class KalturaHandler extends BasicAbstractAttachmentHandler<KalturaHandle
 					result.setThumbnail(new ImageRenderer(entry.thumbnailUrl, new TextLabel(entry.name)));
 					int views = entry.views;
 					result.setViews(
-						views == 1 ? new KeyLabel(SINGULAR_VIEWS_LABEL) : new KeyLabel(PLURAL_VIEWS_LABEL, views));
+							views == 1 ? new KeyLabel(SINGULAR_VIEWS_LABEL) : new KeyLabel(PLURAL_VIEWS_LABEL, views));
 
 					rv.add(result);
 				}
@@ -333,16 +335,16 @@ public class KalturaHandler extends BasicAbstractAttachmentHandler<KalturaHandle
 				}
 
 				KalturaMediaListResponse mediaList = kalturaService.getMediaEntries(
-					getKalturaClient(ks, KalturaSessionType.ADMIN),
-					Lists.transform(model.getUploads(), new Function<KalturaUploadInfo, String>()
-					{
-						@Override
-						public String apply(KalturaUploadInfo input)
+						getKalturaClient(ks, KalturaSessionType.ADMIN),
+						Lists.transform(model.getUploads(), new Function<KalturaUploadInfo, String>()
 						{
-							return input.getEntryId();
-						}
+							@Override
+							public String apply(KalturaUploadInfo input)
+							{
+								return input.getEntryId();
+							}
 
-					}));
+						}));
 
 				final List<KalturaUpload> rv = new ArrayList<KalturaUpload>();
 				String uiConfId = getKdpUiConfId(info, ks, false);
@@ -352,7 +354,7 @@ public class KalturaHandler extends BasicAbstractAttachmentHandler<KalturaHandle
 					KalturaUpload uo = new KalturaUpload(entry.id);
 
 					final LinkRenderer titleLink = new PopupLinkRenderer(
-						new HtmlLinkState(new SimpleBookmark(createFlashEmbedUrl(ks, entry.id, uiConfId))));
+							new HtmlLinkState(new SimpleBookmark(createFlashEmbedUrl(ks, entry.id, uiConfId))));
 
 					titleLink.setLabel(new TextLabel(entry.name));
 					uo.setTitle(titleLink);
@@ -408,7 +410,7 @@ public class KalturaHandler extends BasicAbstractAttachmentHandler<KalturaHandle
 		super.treeFinished(id, tree);
 
 		StatementHandler updateHandler = new StatementHandler(
-			dialogState.getDialog().getFooterUpdate(tree, events.getEventHandler("updateButtons")));
+				dialogState.getDialog().getFooterUpdate(tree, events.getEventHandler("updateButtons")));
 
 		results.setEventHandler(JSHandler.EVENT_CHANGE, updateHandler);
 		selections.setEventHandler(JSHandler.EVENT_CHANGE, updateHandler);
@@ -417,7 +419,7 @@ public class KalturaHandler extends BasicAbstractAttachmentHandler<KalturaHandle
 	private String createFlashEmbedUrl(KalturaServer ks, String entryId, String uiConfId)
 	{
 		return MessageFormat.format("{0}/kwidget/wid/_{1}/uiconf_id/{2}/entry_id/{3}", ks.getEndPoint(),
-			Integer.toString(ks.getPartnerId()), uiConfId, entryId);
+				Integer.toString(ks.getPartnerId()), uiConfId, entryId);
 	}
 
 	private String getKdpUiConfId(SectionInfo info, KalturaServer ks, boolean useCustom)
@@ -480,12 +482,12 @@ public class KalturaHandler extends BasicAbstractAttachmentHandler<KalturaHandle
 		{
 			String key = ks == null ? "missing" : !ks.isEnabled() ? "disabled" : "offline";
 			HeadingRenderer heading = new HeadingRenderer(3,
-				new KeyLabel(KEY_UNAVAILABLE, new KeyLabel(KEY_INFO_PREFIX + key)));
+					new KeyLabel(KEY_UNAVAILABLE, new KeyLabel(KEY_INFO_PREFIX + key)));
 			LabelRenderer error = new LabelRenderer(
-				new KeyLabel(KEY_UNAVAILABLE_DESC, new KeyLabel(KEY_INFO_DESC_PREFIX + key)));
+					new KeyLabel(KEY_UNAVAILABLE_DESC, new KeyLabel(KEY_INFO_DESC_PREFIX + key)));
 
 			ImageRenderer watermark = new ImageRenderer(new TagState("kaltura-logo"), KALTURA_LOGO_URL,
-				new TextLabel("kalturalogo"));
+					new TextLabel("kalturalogo"));
 
 			return new CombinedRenderer(heading, error, watermark, CSS);
 		}
@@ -556,9 +558,12 @@ public class KalturaHandler extends BasicAbstractAttachmentHandler<KalturaHandle
 		kcwVars.put("uiConfId", Integer.toString(kalturaService.getDefaultKcwUiConf(kclientAdmin).id));
 		kcwVars.put("ks", getKalturaClient(ks, KalturaSessionType.USER).getSessionId());
 		kcwVars.put("onClose", finishedCallback);
-
-		divKcw.addReadyStatements(context, new FunctionCallStatement(
-			new FunctionCallExpression(setupKcwControl, divKcw.getElementId(context), kcwVars)));
+		divKcw.addReadyStatements(
+				context, new FunctionCallStatement(
+						new FunctionCallExpression(setupKalturaUpload,
+								divKcw.getElementId(context),
+								getKalturaClient(ks, KalturaSessionType.USER).getSessionId(),
+								ks.getPartnerId())));
 	}
 
 	private void setupKalturaKdp(SectionInfo context, KalturaServer ks, String flashUrl)
@@ -571,19 +576,19 @@ public class KalturaHandler extends BasicAbstractAttachmentHandler<KalturaHandle
 		kdpVars.put("embedUrl", flashUrl);
 
 		divKdp.addReadyStatements(context,
-			new FunctionCallStatement(new FunctionCallExpression(new ExternallyDefinedFunction("setupKDP",
-				SwfObject.PRERENDER, new IncludeFile(KALTURA), new IncludeFile(createHtml5embed(ks))),
-				divKdp.getElementId(context), kdpVars)));
+				new FunctionCallStatement(new FunctionCallExpression(new ExternallyDefinedFunction("setupKDP",
+						SwfObject.PRERENDER, new IncludeFile(KALTURA), new IncludeFile(createHtml5embed(ks))),
+						divKdp.getElementId(context), kdpVars)));
 	}
 
 	private SectionRenderable renderChoice(RenderContext context, DialogRenderOptions renderOptions)
 	{
 		renderOptions.addAction(nextChoiceButton);
 		choice.addReadyStatements(context,
-			new ExternallyDefinedFunction("setupOpts", new IncludeFile(KALTURA_OPTS, JQueryUICore.PRERENDER)),
-			nextChoiceButton.getState(context));
+				new ExternallyDefinedFunction("setupOpts", new IncludeFile(KALTURA_OPTS, JQueryUICore.PRERENDER)),
+				nextChoiceButton.getState(context));
 		getModel(context).setKalturaLogo(
-			new ImageRenderer(new TagState("kaltura-logo"), KALTURA_LOGO_URL, new TextLabel("kalturalogo")));
+				new ImageRenderer(new TagState("kaltura-logo"), KALTURA_LOGO_URL, new TextLabel("kalturalogo")));
 		return viewFactory.createResult("option-kaltura.ftl", this);
 	}
 
@@ -603,7 +608,7 @@ public class KalturaHandler extends BasicAbstractAttachmentHandler<KalturaHandle
 		KalturaHandlerModel model = getModel(context);
 		final Attachment a = getDetailsAttachment(context);
 		String embedUrl = createFlashEmbedUrl(ks, (String) a.getData(KalturaUtils.PROPERTY_ENTRY_ID),
-			getKdpUiConfId(context, ks, true));
+				getKdpUiConfId(context, ks, true));
 		model.addSpecificDetail("dataurl", new Pair<Label, Object>(null, embedUrl));
 		model.setShowPlayers(players.getListModel().getOptions(context).size() > 1);
 
@@ -613,7 +618,7 @@ public class KalturaHandler extends BasicAbstractAttachmentHandler<KalturaHandle
 		// Get common details from viewable resource
 		ItemSectionInfo itemInfo = context.getAttributeForClass(ItemSectionInfo.class);
 		ViewableResource resource = attachmentResourceService.getViewableResource(context, itemInfo.getViewableItem(),
-			a);
+				a);
 		addAttachmentDetails(context, resource.getCommonAttachmentDetails());
 
 		// Get dynamic details
@@ -622,7 +627,7 @@ public class KalturaHandler extends BasicAbstractAttachmentHandler<KalturaHandle
 		{
 			// Get kaltura media entry
 			KalturaMediaEntry entry = kalturaService.getMediaEntry(getKalturaClient(ks, KalturaSessionType.ADMIN),
-				entryId);
+					entryId);
 
 			// Duration has to be dynamic as it is 0 when converting
 			int duration = entry.duration;
@@ -631,7 +636,7 @@ public class KalturaHandler extends BasicAbstractAttachmentHandler<KalturaHandle
 				// Cannot cast from Integer to long
 				String fd = Utils.formatDuration(duration);
 				addAttachmentDetail(context, DURATION, fd.contains(":") ? new TextLabel(fd)
-					: (fd.equals("1") ? SECONDS_SINGULAR : new KeyLabel(SECONDS_PLURAL, fd)));
+						: (fd.equals("1") ? SECONDS_SINGULAR : new KeyLabel(SECONDS_PLURAL, fd)));
 			}
 
 			addAttachmentDetail(context, VIEWS_LABEL, new NumberLabel(entry.views));
@@ -669,7 +674,7 @@ public class KalturaHandler extends BasicAbstractAttachmentHandler<KalturaHandle
 	private String createHtml5embed(KalturaServer ks)
 	{
 		return MessageFormat.format("{0}/p/{1}/embedIframeJs/uiconf_id/{2}/partner_id/{1}", ks.getEndPoint(),
-			Integer.toString(ks.getPartnerId()), Integer.toString(ks.getKdpUiConfId()));
+				Integer.toString(ks.getPartnerId()), Integer.toString(ks.getKdpUiConfId()));
 	}
 
 	@EventHandlerMethod
@@ -767,7 +772,7 @@ public class KalturaHandler extends BasicAbstractAttachmentHandler<KalturaHandle
 	private Attachment createAttachment(String entryId)
 	{
 		KalturaMediaEntry entry = kalturaService
-			.getMediaEntry(getKalturaClient(getKalturaServer(), KalturaSessionType.ADMIN), entryId);
+				.getMediaEntry(getKalturaClient(getKalturaServer(), KalturaSessionType.ADMIN), entryId);
 
 		CustomAttachment attachment = new CustomAttachment();
 
