@@ -341,7 +341,7 @@ public class KalturaHandler extends BasicAbstractAttachmentHandler<KalturaHandle
 							@Override
 							public String apply(KalturaUploadInfo input)
 							{
-								return input.getEntryId();
+								return input.getId();
 							}
 
 						}));
@@ -547,23 +547,13 @@ public class KalturaHandler extends BasicAbstractAttachmentHandler<KalturaHandle
 	private void setupKalturaKcw(RenderContext context)
 	{
 		KalturaServer ks = getKalturaServer();
-		ObjectExpression kcwVars = new ObjectExpression();
-		kcwVars.put("ep", ks.getEndPoint());
-		kcwVars.put("pid", ks.getPartnerId());
-		kcwVars.put("flashVersion", "9.0.0");
-		kcwVars.put("width", "775");
-		kcwVars.put("height", "380");
-
-		KalturaClient kclientAdmin = getKalturaClient(ks, KalturaSessionType.ADMIN);
-		kcwVars.put("uiConfId", Integer.toString(kalturaService.getDefaultKcwUiConf(kclientAdmin).id));
-		kcwVars.put("ks", getKalturaClient(ks, KalturaSessionType.USER).getSessionId());
-		kcwVars.put("onClose", finishedCallback);
 		divKcw.addReadyStatements(
 				context, new FunctionCallStatement(
 						new FunctionCallExpression(setupKalturaUpload,
 								divKcw.getElementId(context),
 								getKalturaClient(ks, KalturaSessionType.USER).getSessionId(),
-								ks.getPartnerId())));
+								ks.getPartnerId(),
+								finishedCallback)));
 	}
 
 	private void setupKalturaKdp(SectionInfo context, KalturaServer ks, String flashUrl)
@@ -686,7 +676,7 @@ public class KalturaHandler extends BasicAbstractAttachmentHandler<KalturaHandle
 
 		if( entries.size() == 1 )
 		{
-			selections.setSelectedStringValue(info, entries.get(0).getEntryId());
+			selections.setSelectedStringValue(info, entries.get(0).getId());
 			dialogState.save(info);
 		}
 	}
@@ -701,17 +691,17 @@ public class KalturaHandler extends BasicAbstractAttachmentHandler<KalturaHandle
 	public static class KalturaUploadInfo
 	{
 		private String mediaType;
-		private String entryId;
+		private String id;
 
 		public KalturaUploadInfo()
 		{
 			// Nothing to see here
 		}
 
-		public KalturaUploadInfo(String mediaType, String entryId)
+		public KalturaUploadInfo(String mediaType, String id)
 		{
 			this.mediaType = mediaType;
-			this.entryId = entryId;
+			this.id = id;
 		}
 
 		public String getMediaType()
@@ -724,14 +714,14 @@ public class KalturaHandler extends BasicAbstractAttachmentHandler<KalturaHandle
 			this.mediaType = mediaType;
 		}
 
-		public String getEntryId()
+		public String getId()
 		{
-			return entryId;
+			return id;
 		}
 
-		public void setEntryId(String entryId)
+		public void setId(String id)
 		{
-			this.entryId = entryId;
+			this.id = id;
 		}
 	}
 
