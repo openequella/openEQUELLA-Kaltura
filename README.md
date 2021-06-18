@@ -7,7 +7,7 @@ Before running _sbt compile_ on the core Equella code base, do the following
 1. git clone the [openEquella-Kaltura](https://github.com/openequella/openEQUELLA-Kaltura) repo.
 2. Change directory to 'Kaltura/com.tle.web.wizard.controls.kaltura/js'.  
 3. Run 'npm ci && npm run build'.   
-3. Copy the Kaltura directory from the {Equella-Kaltura} cloned directory into your Equella Plugins into the core Equella Plugins directory {Equella-core-repo}/Source/Plugins
+4. Copy the Kaltura directory from the {Equella-Kaltura} cloned directory into your Equella Plugins into the core Equella Plugins directory {Equella-core-repo}/Source/Plugins
 
 Proceed with the normal build process for openEquella.  Kaltura integration will be enabled.
 
