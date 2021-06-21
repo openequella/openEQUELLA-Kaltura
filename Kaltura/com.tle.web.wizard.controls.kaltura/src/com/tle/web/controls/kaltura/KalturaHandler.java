@@ -255,10 +255,6 @@ public class KalturaHandler extends BasicAbstractAttachmentHandler<KalturaHandle
 				UPLOAD_CONTROL));
 		finishedCallback = events.getSubmitValuesFunction("finished");
 
-		JSCallable setAllFunction = selections.createSetAllFunction();
-		selectAll.setClickHandler(new OverrideHandler(setAllFunction, true));
-		selectNone.setClickHandler(new OverrideHandler(setAllFunction, false));
-
 		results.setListModel(new DynamicHtmlListModel<Void>()
 		{
 			@Override
@@ -321,63 +317,6 @@ public class KalturaHandler extends BasicAbstractAttachmentHandler<KalturaHandle
 			}
 		});
 
-		selections.setListModel(new DynamicHtmlListModel<KalturaUpload>()
-		{
-			@Override
-			protected Iterable<KalturaUpload> populateModel(SectionInfo info)
-			{
-				KalturaHandlerModel model = getModel(info);
-				KalturaServer ks = getKalturaServer();
-
-				if( model.isButtonUpdate() || Check.isEmpty(model.getUploads()) )
-				{
-					return Collections.emptyList();
-				}
-
-				KalturaMediaListResponse mediaList = kalturaService.getMediaEntries(
-						getKalturaClient(ks, KalturaSessionType.ADMIN),
-						Lists.transform(model.getUploads(), new Function<KalturaUploadInfo, String>()
-						{
-							@Override
-							public String apply(KalturaUploadInfo input)
-							{
-								return input.getId();
-							}
-
-						}));
-
-				final List<KalturaUpload> rv = new ArrayList<KalturaUpload>();
-				String uiConfId = getKdpUiConfId(info, ks, false);
-
-				for( KalturaMediaEntry entry : mediaList.objects )
-				{
-					KalturaUpload uo = new KalturaUpload(entry.id);
-
-					final LinkRenderer titleLink = new PopupLinkRenderer(
-							new HtmlLinkState(new SimpleBookmark(createFlashEmbedUrl(ks, entry.id, uiConfId))));
-
-					titleLink.setLabel(new TextLabel(entry.name));
-					uo.setTitle(titleLink);
-					uo.setDescription(new TextLabel(entry.description));
-					String tags = entry.tags;
-					if( !Check.isEmpty(tags) )
-					{
-						uo.setTags(new KeyLabel(UPLOAD_TAGS_LABEL, tags));
-					}
-
-					rv.add(uo);
-				}
-
-				return rv;
-			}
-
-			@Override
-			protected Option<KalturaUpload> convertToOption(SectionInfo info, KalturaUpload obj)
-			{
-				return new KeyOption<KalturaHandler.KalturaUpload>(null, obj.getVideoId(), obj);
-			}
-		});
-
 		players.setListModel(new DynamicHtmlListModel<KalturaUiConf>()
 		{
 			@Override
@@ -413,7 +352,6 @@ public class KalturaHandler extends BasicAbstractAttachmentHandler<KalturaHandle
 				dialogState.getDialog().getFooterUpdate(tree, events.getEventHandler("updateButtons")));
 
 		results.setEventHandler(JSHandler.EVENT_CHANGE, updateHandler);
-		selections.setEventHandler(JSHandler.EVENT_CHANGE, updateHandler);
 	}
 
 	private String createFlashEmbedUrl(KalturaServer ks, String entryId, String uiConfId)
@@ -497,7 +435,6 @@ public class KalturaHandler extends BasicAbstractAttachmentHandler<KalturaHandle
 		if( !isMultipleAllowed(context) )
 		{
 			results.getState(context).setDisallowMultiple(true);
-			selections.getState(context).setDisallowMultiple(true);
 		}
 
 		// Check if there is a restriction on the choice
@@ -528,16 +465,15 @@ public class KalturaHandler extends BasicAbstractAttachmentHandler<KalturaHandle
 			else
 			{
 				// Render List of uploads or KCW
-				if( model.isFinishedUploading() )
-				{
-					renderable = renderUploads(context, renderOptions);
-				}
-				else
-				{
-					// Generate user client ks and flashvars etc. pass to setup
+//				if( model.isFinishedUploading() )
+//				{
+//					renderable = renderUploads(context, renderOptions);
+//				}
+//				else
+//				{
 					setupKalturaKcw(context);
 					renderable = renderContribution();
-				}
+//				}
 			}
 		}
 
@@ -653,14 +589,6 @@ public class KalturaHandler extends BasicAbstractAttachmentHandler<KalturaHandle
 		return viewFactory.createResult("contribute-kaltura.ftl", this);
 	}
 
-	private SectionRenderable renderUploads(RenderContext context, DialogRenderOptions renderOptions)
-	{
-		renderOptions.setShowSave(selections.getSelectedValuesAsStrings(context).size() >= 1);
-		renderOptions.setShowAddReplace(true);
-
-		return viewFactory.createResult("uploads-kaltura.ftl", this);
-	}
-
 	private String createHtml5embed(KalturaServer ks)
 	{
 		return MessageFormat.format("{0}/p/{1}/embedIframeJs/uiconf_id/{2}/partner_id/{1}", ks.getEndPoint(),
@@ -687,7 +615,6 @@ public class KalturaHandler extends BasicAbstractAttachmentHandler<KalturaHandle
 		getModel(info).setSearchPerformed(!Check.isEmpty(query.getValue(info)));
 	}
 
-	// From the kcw flash widget
 	public static class KalturaUploadInfo
 	{
 		private String mediaType;
@@ -874,11 +801,6 @@ public class KalturaHandler extends BasicAbstractAttachmentHandler<KalturaHandle
 			{
 				this.uploads.add(ul);
 			}
-		}
-
-		public boolean isFinishedUploading()
-		{
-			return finishedUploading;
 		}
 
 		public void setShowPlayers(boolean show)

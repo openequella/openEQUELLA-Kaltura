@@ -86,7 +86,6 @@ public class KalturaServiceImpl extends AbstractEntityServiceImpl<EntityEditingB
 	}
 
 	// Increase number on the end to replace
-	private static final String EQUELLA_KCW_UICONF = "EQUELLA-KCW-UICONF_5.2-134";
 	private static final String EQUELLA_KDP_UICONF = "EQUELLA-KDP-UICONF_5.2-114";
 
 	@Override
@@ -183,67 +182,6 @@ public class KalturaServiceImpl extends AbstractEntityServiceImpl<EntityEditingB
 		{
 			throw Throwables.propagate(e);
 		}
-	}
-
-	@Override
-	public KalturaUiConf getDefaultKcwUiConf(KalturaClient client)
-	{
-		try
-		{
-			KalturaUiConf conf = null;
-
-			KalturaUiConfFilter kcf = new KalturaUiConfFilter();
-			kcf.nameLike = "EQUELLA-KCW-UICONF_5.2";
-			kcf.objTypeEqual = KalturaUiConfObjType.CONTRIBUTION_WIZARD;
-			KalturaUiConfService uiConfService = client.getUiConfService();
-			KalturaUiConfListResponse uiList = uiConfService.list(kcf);
-
-			if( uiList.totalCount == 0 )
-			{
-				// No Configs add default
-				conf = createDefaultKCWUiConf(uiConfService);
-			}
-			else if( uiList.totalCount > 1 )
-			{
-				// More than 1 delete all and add default
-				for( KalturaUiConf uiConf : uiList.objects )
-				{
-					uiConfService.delete(uiConf.id);
-				}
-
-				conf = createDefaultKCWUiConf(uiConfService);
-			}
-			else
-			{
-				// If there is one is it the latest
-				conf = uiList.objects.get(0);
-				if( !conf.name.equals(EQUELLA_KCW_UICONF) )
-				{
-					uiConfService.delete(conf.id);
-					conf = createDefaultKCWUiConf(uiConfService);
-				}
-			}
-
-			return conf;
-		}
-		catch( Exception e )
-		{
-			Throwables.propagate(e);
-		}
-		return null;
-	}
-
-	private KalturaUiConf createDefaultKCWUiConf(KalturaUiConfService uiConfService) throws IOException,
-		KalturaApiException
-	{
-		KalturaUiConf equellaKcwUiConf = new KalturaUiConf();
-		equellaKcwUiConf.objType = KalturaUiConfObjType.CONTRIBUTION_WIZARD;
-		equellaKcwUiConf.creationMode = KalturaUiConfCreationMode.ADVANCED;
-		equellaKcwUiConf.swfUrl = "/flash/kcw/v2.1.6.7/ContributionWizard.swf";
-		equellaKcwUiConf.confFile = readUiConfXml("default_kcw_ui_conf.xml");
-		equellaKcwUiConf.name = EQUELLA_KCW_UICONF;
-
-		return uiConfService.add(equellaKcwUiConf);
 	}
 
 	@Override
