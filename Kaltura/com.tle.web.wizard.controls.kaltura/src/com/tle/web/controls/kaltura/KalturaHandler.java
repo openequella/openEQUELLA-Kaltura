@@ -464,16 +464,8 @@ public class KalturaHandler extends BasicAbstractAttachmentHandler<KalturaHandle
 			}
 			else
 			{
-				// Render List of uploads or KCW
-//				if( model.isFinishedUploading() )
-//				{
-//					renderable = renderUploads(context, renderOptions);
-//				}
-//				else
-//				{
-					setupKalturaKcw(context);
-					renderable = renderContribution();
-//				}
+				setupKalturaKcw(context);
+				renderable = renderContribution();
 			}
 		}
 
