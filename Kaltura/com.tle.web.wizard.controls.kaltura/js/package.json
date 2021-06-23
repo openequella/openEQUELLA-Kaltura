@@ -10,7 +10,7 @@
     "build": "parcel build ./UploadControlEntry.js --out-dir=${npm_package_config_dist}"
   },
   "dependencies": {
-    "@openequella/react-kaltura-simpleuploader": "https://github.com/openequella/react-kaltura-simpleuploader/releases/download/v0.3.0/openequella-react-kaltura-simpleuploader-0.3.0.tgz"
+    "@openequella/react-kaltura-simpleuploader": "https://github.com/openequella/react-kaltura-simpleuploader/releases/download/v1.0.0/openequella-react-kaltura-simpleuploader-1.0.0.tgz"
   },
   "devDependencies": {
     "parcel-bundler": "1.12.5",
