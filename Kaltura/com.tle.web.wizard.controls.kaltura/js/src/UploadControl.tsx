@@ -1,5 +1,6 @@
 import {kalturaSaasEndpoint, render} from "@openequella/react-kaltura-simpleuploader";
 import {KalturaMediaEntry} from "kaltura-typescript-client/api/types";
+import "@openequella/react-kaltura-simpleuploader/dist/styles.css"
 
 /**
  * Provide the access to the TS Upload control

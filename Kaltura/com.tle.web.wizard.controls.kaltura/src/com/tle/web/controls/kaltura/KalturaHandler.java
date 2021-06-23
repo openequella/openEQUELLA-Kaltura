@@ -124,7 +124,8 @@ public class KalturaHandler extends BasicAbstractAttachmentHandler<KalturaHandle
 
 	private static final CssInclude CSS = CssInclude
 			.include(ResourcesService.getResourceHelper(KalturaHandler.class).url("css/kaltura.css")).hasRtl().make();
-
+	private static final CssInclude UPLOAD_CONTROL_CSS = CssInclude
+			.include(ResourcesService.getResourceHelper(KalturaHandler.class).url("js/UploadControlEntry.css")).hasRtl().make();
 	@PlugURL("images/kalturalogotrans.png")
 	private static String KALTURA_LOGO_URL;
 
@@ -465,7 +466,7 @@ public class KalturaHandler extends BasicAbstractAttachmentHandler<KalturaHandle
 			else
 			{
 				setupKalturaKcw(context);
-				renderable = renderContribution();
+				renderable = new CombinedRenderer(renderContribution(), UPLOAD_CONTROL_CSS);
 			}
 		}
 
