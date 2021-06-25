@@ -1,0 +1,16 @@
+{
+  "include": ["src"],
+  "compilerOptions": {
+    "module": "ES6",
+    "lib": ["es2020", "dom"],
+    "target": "ES6",
+    "sourceMap": true,
+    "strict": true,
+    "moduleResolution": "node",
+    "baseUrl": ".",
+    "paths": {
+      "*": ["src/*"]
+    },
+    "jsx": "react",
+  }
+}

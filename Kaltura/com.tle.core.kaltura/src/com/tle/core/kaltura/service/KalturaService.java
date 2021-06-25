@@ -41,8 +41,6 @@ public interface KalturaService extends AbstractEntityService<EntityEditingBean,
 
 	KalturaClient getKalturaClient(KalturaServer kalturaServer, KalturaSessionType type) throws KalturaApiException;
 
-	KalturaUiConf getDefaultKcwUiConf(KalturaClient client);
-
 	KalturaUiConf getDefaultKdpUiConf(KalturaServer ks);
 
 	boolean testKalturaSetup(KalturaServer kalturaServer, KalturaSessionType type) throws KalturaApiException;
