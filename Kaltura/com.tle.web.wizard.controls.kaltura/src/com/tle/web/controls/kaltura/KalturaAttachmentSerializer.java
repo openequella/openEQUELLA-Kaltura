@@ -16,24 +16,28 @@
 
 package com.tle.web.controls.kaltura;
 
-import java.util.Date;
-import java.util.Map;
-
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMap.Builder;
 import com.google.inject.Singleton;
 import com.tle.beans.item.attachments.Attachment;
 import com.tle.beans.item.attachments.CustomAttachment;
 import com.tle.common.kaltura.KalturaUtils;
+import com.tle.common.kaltura.entity.KalturaServer;
 import com.tle.core.guice.Bind;
 import com.tle.core.item.edit.ItemEditor;
 import com.tle.core.item.serializer.AbstractAttachmentSerializer;
+import com.tle.core.kaltura.service.KalturaService;
 import com.tle.web.api.item.equella.interfaces.beans.EquellaAttachmentBean;
+import java.util.Date;
+import java.util.Map;
+import javax.inject.Inject;
 
 @Bind
 @Singleton
 public class KalturaAttachmentSerializer extends AbstractAttachmentSerializer
 {
+	@Inject
+	private KalturaService kalturaService;
 
 	@Override
 	public EquellaAttachmentBean serialize(Attachment attachment)
@@ -66,6 +70,10 @@ public class KalturaAttachmentSerializer extends AbstractAttachmentSerializer
 			}
 			kbean.setDuration(durInt);
 		}
+
+		KalturaServer ks = kalturaService.getByUuid(kbean.getKalturaServer());
+		kbean.setExternalId(ks.getPartnerId(), kalturaService.getDefaultKdpUiConf(ks).id);
+
 		return kbean;
 	}
 

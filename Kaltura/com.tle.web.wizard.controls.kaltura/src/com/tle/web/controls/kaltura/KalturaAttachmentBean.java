@@ -19,6 +19,7 @@ package com.tle.web.controls.kaltura;
 import java.util.Date;
 
 import com.tle.web.api.item.equella.interfaces.beans.EquellaAttachmentBean;
+import java.util.Optional;
 
 @SuppressWarnings("nls")
 public class KalturaAttachmentBean extends EquellaAttachmentBean
@@ -30,6 +31,12 @@ public class KalturaAttachmentBean extends EquellaAttachmentBean
 	private String kalturaServer;
 	private String tags;
 	private long duration;
+
+	/**
+	 * A string which is made up of the core elements required to generate a embedded Kaltura viewer.
+	 * It has the format of {@code <partner_id>/<uiconf_id>/<entryId>}.
+	 */
+	private String externalId;
 
 	@Override
 	public String getRawAttachmentType()
@@ -105,5 +112,14 @@ public class KalturaAttachmentBean extends EquellaAttachmentBean
 	public void setKalturaServer(String kalturaServer)
 	{
 		this.kalturaServer = kalturaServer;
+	}
+
+	public void setExternalId(int partnerId, int uiConfId) {
+		this.externalId = String.format("%d/%d/%s", partnerId, uiConfId, mediaId);
+	}
+
+	@Override
+	public Optional<String> getExternalId() {
+		return Optional.of(externalId);
 	}
 }
