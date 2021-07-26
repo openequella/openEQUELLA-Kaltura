@@ -16,22 +16,11 @@
 
 package com.tle.core.kaltura.service;
 
-import java.io.IOException;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-
-import javax.inject.Inject;
-
-import org.springframework.transaction.annotation.Transactional;
-
-import com.tle.common.beans.exception.ValidationError;
-import com.tle.common.beans.exception.InvalidDataException;
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.base.Throwables;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.google.common.io.Resources;
 import com.google.inject.Singleton;
 import com.kaltura.client.KalturaApiException;
@@ -55,17 +44,28 @@ import com.kaltura.client.types.KalturaUiConfListResponse;
 import com.tle.beans.entity.BaseEntityLabel;
 import com.tle.common.Check;
 import com.tle.common.EntityPack;
+import com.tle.common.beans.exception.InvalidDataException;
+import com.tle.common.beans.exception.ValidationError;
 import com.tle.common.i18n.LangUtils;
 import com.tle.common.kaltura.entity.KalturaServer;
 import com.tle.common.security.PrivilegeTree.Node;
+import com.tle.core.entity.EntityEditingBean;
+import com.tle.core.entity.EntityEditingSession;
+import com.tle.core.entity.service.impl.AbstractEntityServiceImpl;
 import com.tle.core.guice.Bind;
 import com.tle.core.kaltura.KalturaConstants;
 import com.tle.core.kaltura.dao.KalturaDao;
 import com.tle.core.security.impl.SecureEntity;
 import com.tle.core.security.impl.SecureOnReturn;
-import com.tle.core.entity.EntityEditingBean;
-import com.tle.core.entity.EntityEditingSession;
-import com.tle.core.entity.service.impl.AbstractEntityServiceImpl;
+import java.io.IOException;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import javax.inject.Inject;
+import org.springframework.transaction.annotation.Transactional;
 
 
 @Bind(KalturaService.class)
@@ -87,6 +87,12 @@ public class KalturaServiceImpl extends AbstractEntityServiceImpl<EntityEditingB
 
 	// Increase number on the end to replace
 	private static final String EQUELLA_KDP_UICONF = "EQUELLA-KDP-UICONF_5.2-114";
+
+	// A cache to protect against excessive calls to Kaltura. There is a small risk of a period when
+	// incorrect results could then be returned - however if needs be a restart can navigate it.
+	private final Cache<String, KalturaUiConf> defaultUiConfCache = CacheBuilder.newBuilder()
+			.expireAfterWrite(1,
+					TimeUnit.HOURS).build();
 
 	@Override
 	public KalturaMediaListResponse searchMedia(KalturaClient client, Collection<String> keywords, int page, int limit)
@@ -187,11 +193,15 @@ public class KalturaServiceImpl extends AbstractEntityServiceImpl<EntityEditingB
 	@Override
 	public KalturaUiConf getDefaultKdpUiConf(KalturaServer ks)
 	{
+		KalturaUiConf conf = defaultUiConfCache.getIfPresent(ks.getUuid());
+		if (conf != null)
+		{
+			return conf;
+		}
 
 		try
 		{
 			KalturaClient kc = getKalturaClient(ks, KalturaSessionType.ADMIN);
-			KalturaUiConf conf = null;
 
 			KalturaUiConfFilter kcf = new KalturaUiConfFilter();
 			kcf.nameLike = "EQUELLA-KDP-UICONF_5.2";
@@ -225,12 +235,14 @@ public class KalturaServiceImpl extends AbstractEntityServiceImpl<EntityEditingB
 				}
 			}
 
+			defaultUiConfCache.put(ks.getUuid(), conf);
 			return conf;
 		}
 		catch( Exception e )
 		{
 			Throwables.propagate(e);
 		}
+
 		return null;
 	}
 
