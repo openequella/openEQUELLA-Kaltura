@@ -62,6 +62,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import javax.inject.Inject;
@@ -190,10 +191,25 @@ public class KalturaServiceImpl extends AbstractEntityServiceImpl<EntityEditingB
 		}
 	}
 
+	private KalturaUiConf fetchCachedUiConf(KalturaServer ks)
+	{
+		return Optional.ofNullable(ks.getUuid())
+				.map(defaultUiConfCache::getIfPresent)
+				.orElse(null);
+	}
+
+	private KalturaUiConf putCachedUiConf(KalturaServer ks, KalturaUiConf conf)
+	{
+		Optional.ofNullable(ks.getUuid())
+				.ifPresent(uuid -> defaultUiConfCache.put(uuid, conf));
+
+		return conf;
+	}
+
 	@Override
 	public KalturaUiConf getDefaultKdpUiConf(KalturaServer ks)
 	{
-		KalturaUiConf conf = defaultUiConfCache.getIfPresent(ks.getUuid());
+		KalturaUiConf conf = fetchCachedUiConf(ks);
 		if (conf != null)
 		{
 			return conf;
@@ -235,8 +251,7 @@ public class KalturaServiceImpl extends AbstractEntityServiceImpl<EntityEditingB
 				}
 			}
 
-			defaultUiConfCache.put(ks.getUuid(), conf);
-			return conf;
+			return putCachedUiConf(ks, conf);
 		}
 		catch( Exception e )
 		{
