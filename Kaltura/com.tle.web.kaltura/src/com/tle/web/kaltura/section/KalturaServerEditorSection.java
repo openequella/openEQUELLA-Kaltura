@@ -16,30 +16,21 @@
 
 package com.tle.web.kaltura.section;
 
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
-import javax.inject.Inject;
-
-import com.tle.common.beans.exception.ValidationError;
-import com.tle.common.beans.exception.InvalidDataException;
 import com.google.common.collect.Lists;
-import com.kaltura.client.enums.KalturaSessionType;
-import com.kaltura.client.types.KalturaUiConf;
+import com.kaltura.client.enums.SessionType;
+import com.kaltura.client.types.UiConf;
 import com.tle.beans.entity.LanguageBundle;
 import com.tle.common.Check;
 import com.tle.common.NameValue;
+import com.tle.common.beans.exception.InvalidDataException;
+import com.tle.common.beans.exception.ValidationError;
 import com.tle.common.i18n.LangUtils;
 import com.tle.common.kaltura.entity.KalturaServer;
 import com.tle.core.guice.Bind;
+import com.tle.core.i18n.BundleNameValue;
 import com.tle.core.kaltura.service.KalturaService;
 import com.tle.web.freemarker.FreemarkerFactory;
 import com.tle.web.freemarker.annotations.ViewFactory;
-import com.tle.core.i18n.BundleNameValue;
 import com.tle.web.resources.ResourcesService;
 import com.tle.web.sections.SectionInfo;
 import com.tle.web.sections.SectionResult;
@@ -78,6 +69,13 @@ import com.tle.web.sections.standard.annotations.Component;
 import com.tle.web.sections.standard.model.DynamicHtmlListModel;
 import com.tle.web.template.Breadcrumbs;
 import com.tle.web.template.Decorations;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import javax.inject.Inject;
 
 @SuppressWarnings("nls")
 @Bind
@@ -203,10 +201,10 @@ public class KalturaServerEditorSection
 				if( getModel(info).isSuccessful() )
 				{
 					KalturaServer ks = getDetailsFromForm(info);
-					List<KalturaUiConf> players = kalturaService.getPlayers(ks);
-					for( KalturaUiConf uiConf : players )
+					List<UiConf> players = kalturaService.getPlayers(ks);
+					for( UiConf uiConf : players )
 					{
-						opts.add(new NameValue(uiConf.name, Integer.toString(uiConf.id)));
+						opts.add(new NameValue(uiConf.getName(), Integer.toString(uiConf.getId())));
 					}
 
 					Collections.sort(opts, new Comparator<NameValue>()
@@ -221,7 +219,7 @@ public class KalturaServerEditorSection
 					opts.add(
 						0,
 						new BundleNameValue(EQUELLA_DEFAULT,
-							Integer.toString(kalturaService.getDefaultKdpUiConf(ks).id)));
+							Integer.toString(kalturaService.getDefaultKdpUiConf(ks).getId())));
 				}
 				return opts;
 			}
@@ -433,9 +431,8 @@ public class KalturaServerEditorSection
 		boolean success = false;
 		try
 		{
-			success = kalturaService.testKalturaSetup(ks, KalturaSessionType.ADMIN)
-				&& kalturaService.testKalturaSetup(ks, KalturaSessionType.USER);
-
+			success = kalturaService.testKalturaSetup(ks, SessionType.ADMIN)
+				&& kalturaService.testKalturaSetup(ks, SessionType.USER);
 		}
 		catch( Exception e )
 		{

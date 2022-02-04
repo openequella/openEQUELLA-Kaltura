@@ -72,7 +72,7 @@ public class KalturaAttachmentSerializer extends AbstractAttachmentSerializer
 		}
 
 		KalturaServer ks = kalturaService.getByUuid(kbean.getKalturaServer());
-		kbean.setExternalId(ks.getPartnerId(), kalturaService.getDefaultKdpUiConf(ks).id);
+		kbean.setExternalId(ks.getPartnerId(), kalturaService.getDefaultKdpUiConf(ks).getId());
 
 		return kbean;
 	}
