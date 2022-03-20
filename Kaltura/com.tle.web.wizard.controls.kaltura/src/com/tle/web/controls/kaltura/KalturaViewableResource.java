@@ -16,6 +16,7 @@
 
 package com.tle.web.controls.kaltura;
 
+import com.tle.web.viewurl.ViewAuditEntry;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.MessageFormat;
@@ -79,6 +80,11 @@ public class KalturaViewableResource extends AbstractWrappedResource
 			resource.setAttribute(ViewableResource.PREFERRED_LINK_TARGET, "_blank");
 		}
 		this.kalturaService = kalturaService;
+	}
+
+	@Override
+	public ViewAuditEntry getViewAuditEntry() {
+		return new ViewAuditEntry("kaltura", kalturaAttachment.getDescription());
 	}
 
 	@Override

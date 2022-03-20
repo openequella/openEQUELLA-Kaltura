@@ -16,16 +16,17 @@
 
 package com.tle.core.kaltura.service;
 
+import com.kaltura.client.types.ListResponse;
 import java.util.Collection;
 import java.util.List;
 
 import com.tle.common.beans.exception.InvalidDataException;
-import com.kaltura.client.KalturaApiException;
-import com.kaltura.client.KalturaClient;
-import com.kaltura.client.enums.KalturaSessionType;
-import com.kaltura.client.types.KalturaMediaEntry;
-import com.kaltura.client.types.KalturaMediaListResponse;
-import com.kaltura.client.types.KalturaUiConf;
+import com.kaltura.client.types.APIException;
+import com.kaltura.client.Client;
+import com.kaltura.client.enums.SessionType;
+import com.kaltura.client.types.MediaEntry;
+import com.kaltura.client.services.MediaService.ListMediaBuilder;
+import com.kaltura.client.types.UiConf;
 import com.tle.common.kaltura.entity.KalturaServer;
 import com.tle.common.kaltura.service.RemoteKalturaService;
 import com.tle.core.entity.service.AbstractEntityService;
@@ -33,17 +34,17 @@ import com.tle.core.entity.EntityEditingBean;
 
 public interface KalturaService extends AbstractEntityService<EntityEditingBean, KalturaServer>, RemoteKalturaService
 {
-	KalturaMediaListResponse searchMedia(KalturaClient client, Collection<String> keywords, int page, int limit);
+	ListResponse<MediaEntry> searchMedia(Client client, Collection<String> keywords, int page, int limit);
 
-	KalturaMediaEntry getMediaEntry(KalturaClient client, String entryId);
+	MediaEntry getMediaEntry(Client client, String entryId);
 
-	KalturaMediaListResponse getMediaEntries(KalturaClient client, List<String> entryIds);
+	ListResponse<MediaEntry> getMediaEntries(Client client, List<String> entryIds);
 
-	KalturaClient getKalturaClient(KalturaServer kalturaServer, KalturaSessionType type) throws KalturaApiException;
+	Client getKalturaClient(KalturaServer kalturaServer, SessionType type) throws APIException;
 
-	KalturaUiConf getDefaultKdpUiConf(KalturaServer ks);
+	UiConf getDefaultKdpUiConf(KalturaServer ks);
 
-	boolean testKalturaSetup(KalturaServer kalturaServer, KalturaSessionType type) throws KalturaApiException;
+	boolean testKalturaSetup(KalturaServer kalturaServer, SessionType type) throws APIException;
 
 	String addKalturaServer(KalturaServer kalturaServer) throws InvalidDataException;
 
@@ -51,7 +52,7 @@ public interface KalturaService extends AbstractEntityService<EntityEditingBean,
 
 	KalturaServer getForEdit(String kalturaServerUuid);
 
-	List<KalturaUiConf> getPlayers(KalturaServer ks);
+	List<UiConf> getPlayers(KalturaServer ks);
 
 	void enable(KalturaServer ks, boolean enable);
 

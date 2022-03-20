@@ -128,7 +128,7 @@ public class KalturaPreviewRenderer implements VideoPreviewRenderer
 		}
 
 		// EQUELLA default
-		uiConfId = Integer.toString(kalturaService.getDefaultKdpUiConf(ks).id);
+		uiConfId = Integer.toString(kalturaService.getDefaultKdpUiConf(ks).getId());
 		return uiConfId;
 	}
 
