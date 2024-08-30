@@ -16,13 +16,13 @@
 
 package com.tle.web.kaltura.viewer;
 
+import com.kaltura.client.types.UiConf;
 import java.text.MessageFormat;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
-
 import javax.inject.Inject;
-
 import com.tle.beans.item.attachments.IAttachment;
 import com.tle.common.Check;
 import com.tle.common.kaltura.KalturaUtils;
@@ -32,15 +32,7 @@ import com.tle.core.kaltura.service.KalturaService;
 import com.tle.core.mimetypes.MimeTypeService;
 import com.tle.web.sections.SectionInfo;
 import com.tle.web.sections.SectionResult;
-import com.tle.web.sections.equella.annotation.PlugURL;
 import com.tle.web.sections.events.RenderContext;
-import com.tle.web.sections.js.generic.Js;
-import com.tle.web.sections.js.generic.expression.ObjectExpression;
-import com.tle.web.sections.js.generic.function.ExternallyDefinedFunction;
-import com.tle.web.sections.js.generic.function.IncludeFile;
-import com.tle.web.sections.standard.Div;
-import com.tle.web.sections.standard.annotations.Component;
-import com.tle.web.sections.swfobject.SwfObject;
 import com.tle.web.template.Decorations;
 import com.tle.web.viewitem.viewer.AbstractViewerSection;
 import com.tle.web.viewurl.ResourceViewerConfig;
@@ -49,18 +41,12 @@ import com.tle.web.viewurl.ViewableResource;
 
 @Bind
 @SuppressWarnings("nls")
-public class KalturaViewerSection extends AbstractViewerSection<Object>
+public class KalturaViewerSection extends AbstractViewerSection<KalturaViewerSection.KalturaViewerSectionModel>
 {
-	@PlugURL("js/kalturaviewerembed.js")
-	private static String KALTURA_VIEWER;
-
 	@Inject
 	private MimeTypeService mimeTypeService;
 	@Inject
 	private KalturaService kalturaService;
-
-	@Component
-	private Div kdpDiv;
 
 	@Override
 	public Collection<String> ensureOnePrivilege()
@@ -100,16 +86,14 @@ public class KalturaViewerSection extends AbstractViewerSection<Object>
 		return viewFactory.createTemplateResult("viewer/kalturaviewer.ftl", this);
 	}
 
-	private String createHtml5embed(KalturaServer ks, IAttachment a)
+	private String createPlayerEmbed(boolean useV7, KalturaServer ks, IAttachment a, String playerId, String entryId)
 	{
-		return MessageFormat.format("{0}/p/{1}/embedIframeJs/uiconf_id/{2}/partner_id/{1}", ks.getEndPoint(),
-			Integer.toString(ks.getPartnerId()), getKdpUiConfId(ks, a));
-	}
+		String embedUrlPattern = useV7 ?
+				"https://cdnapisec.kaltura.com/p/{0}/embedPlaykitJs/uiconf_id/{2}/?autoembed=true&targetId={3}&entry_id={4}":
+				"https://cdnapisec.kaltura.com/p/{0}/sp/{1}/embedIframeJs/uiconf_id/{2}/partner_id/{0}?autoembed=true&playerId={3}&entry_id={4}";
 
-	private String createFlashEmbed(KalturaServer ks, IAttachment a, String entryId)
-	{
-		return MessageFormat.format("{0}/kwidget/wid/_{1}/uiconf_id/{2}/entry_id/{3}", ks.getEndPoint(),
-			Integer.toString(ks.getPartnerId()), getKdpUiConfId(ks, a), entryId);
+		return MessageFormat.format(embedUrlPattern,
+				Integer.toString(ks.getPartnerId()), Integer.toString(ks.getSubPartnerId()), getKdpUiConfId(ks, a), playerId, entryId);
 	}
 
 	private String getKdpUiConfId(KalturaServer ks, IAttachment a)
@@ -141,7 +125,6 @@ public class KalturaViewerSection extends AbstractViewerSection<Object>
 
 	private void setupKalturaKdp(SectionInfo info, ViewItemResource resource, String width, String height)
 	{
-		ObjectExpression kdpVars = new ObjectExpression();
 		final IAttachment a = getAttachment(resource);
 
 		String entryId = (String) a.getData(KalturaUtils.PROPERTY_ENTRY_ID);
@@ -149,14 +132,15 @@ public class KalturaViewerSection extends AbstractViewerSection<Object>
 
 		KalturaServer ks = getKalturaServer(uuid);
 
-		kdpVars.put("flashVersion", "9.0.0");
-		kdpVars.put("width", width);
-		kdpVars.put("height", height);
-		kdpVars.put("embedUrl", createFlashEmbed(ks, a, entryId));
+		KalturaViewerSectionModel model = getModel(info);
+		model.setWidth(width);
+		model.setHeight(height);
 
-		kdpDiv.addReadyStatements(info, Js.statement(Js.call(new ExternallyDefinedFunction("setupKDP",
-			SwfObject.PRERENDER, new IncludeFile(createHtml5embed(ks, a)), new IncludeFile(KALTURA_VIEWER)), kdpDiv
-			.getElementId(info), kdpVars)));
+		String playerId = "kaltura_player_" + Instant.now().toEpochMilli();
+		model.setPlayerId(playerId);
+
+		UiConf uiConf = kalturaService.getUIConfig(ks);
+		model.setViewerUrl(createPlayerEmbed(uiConf.getHtml5Url() == null, ks, a, playerId, entryId));
 	}
 
 	private IAttachment getAttachment(ViewItemResource resource)
@@ -165,8 +149,47 @@ public class KalturaViewerSection extends AbstractViewerSection<Object>
 		return viewableResource.getAttachment();
 	}
 
-	public Div getKdpDiv()
-	{
-		return kdpDiv;
+	@Override
+	public Object instantiateModel(SectionInfo info) {
+		return new KalturaViewerSectionModel();
+	}
+
+	public static final class KalturaViewerSectionModel {
+		private String width = "100%";
+		private String height = "100%";
+		private String viewerUrl;
+		private String playerId;
+
+		public String getWidth() {
+			return width.endsWith("%") ? width : width + "px";
+		}
+
+		public void setWidth(String width) {
+			this.width = width;
+		}
+
+		public String getHeight() {
+			return height.endsWith("%") ? height : height + "px";
+		}
+
+		public void setHeight(String height) {
+			this.height = height;
+		}
+
+		public String getViewerUrl() {
+			return viewerUrl;
+		}
+
+		public void setViewerUrl(String viewerUrl) {
+			this.viewerUrl = viewerUrl;
+		}
+
+		public String getPlayerId() {
+			return playerId;
+		}
+
+		public void setPlayerId(String playerId) {
+			this.playerId = playerId;
+		}
 	}
 }
