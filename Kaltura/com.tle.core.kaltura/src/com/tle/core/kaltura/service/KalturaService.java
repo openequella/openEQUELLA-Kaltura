@@ -56,6 +56,11 @@ public interface KalturaService extends AbstractEntityService<EntityEditingBean,
 
 	void enable(KalturaServer ks, boolean enable);
 
+  /**
+   * Get the configuration of the selected Kaltura player.
+   */
+  UiConf getUIConfig(KalturaServer ks);
+
 	boolean hasConf(KalturaServer ks, String confId);
 
 	boolean isUp(KalturaServer ks);

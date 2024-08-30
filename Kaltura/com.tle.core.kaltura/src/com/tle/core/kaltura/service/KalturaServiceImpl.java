@@ -23,8 +23,6 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.io.Resources;
 import com.google.inject.Singleton;
 import com.kaltura.client.APIOkRequestsExecutor;
-import com.kaltura.client.services.SystemService;
-import com.kaltura.client.types.APIException;
 import com.kaltura.client.Client;
 import com.kaltura.client.Configuration;
 import com.kaltura.client.enums.EntryStatus;
@@ -34,7 +32,9 @@ import com.kaltura.client.enums.UiConfCreationMode;
 import com.kaltura.client.enums.UiConfObjType;
 import com.kaltura.client.services.MediaService;
 import com.kaltura.client.services.SessionService;
+import com.kaltura.client.services.SystemService;
 import com.kaltura.client.services.UiConfService;
+import com.kaltura.client.types.APIException;
 import com.kaltura.client.types.FilterPager;
 import com.kaltura.client.types.ListResponse;
 import com.kaltura.client.types.MediaEntry;
@@ -68,6 +68,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import javax.inject.Inject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
 
 @Bind(KalturaService.class)
@@ -77,6 +79,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class KalturaServiceImpl
     extends AbstractEntityServiceImpl<EntityEditingBean, KalturaServer, KalturaService>
     implements KalturaService {
+  private static final Logger LOGGER = LoggerFactory.getLogger(KalturaServiceImpl.class);
+
   protected final KalturaDao kalturaDao;
 
   private APIOkRequestsExecutor executor = new APIOkRequestsExecutor();
@@ -417,15 +421,24 @@ public class KalturaServiceImpl
   }
 
   @Override
+  public UiConf getUIConfig(KalturaServer ks) {
+    return getUIConfig(ks, null);
+  }
+
+  @Override
   public boolean hasConf(KalturaServer ks, String confId) {
-    Client client = null;
+    return getUIConfig(ks, confId) != null;
+  }
+
+  private UiConf getUIConfig(KalturaServer ks, String confId) {
+    int playerId = confId != null ? Integer.parseInt(confId) : ks.getKdpUiConfId();
 
     try {
-      client = getKalturaClient(ks, SessionType.ADMIN);
-      UiConf conf = execute(UiConfService.get(Integer.parseInt(confId)).build(client));
-      return conf != null;
+      Client client = getKalturaClient(ks, SessionType.ADMIN);
+      return execute(UiConfService.get(playerId).build(client));
     } catch (APIException e) {
-      return false;
+      LOGGER.error("Failed to get Kaltura player", e);
+      return null;
     }
   }
 }
