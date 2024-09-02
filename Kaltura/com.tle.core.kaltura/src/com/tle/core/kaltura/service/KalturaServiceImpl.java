@@ -44,11 +44,13 @@ import com.kaltura.client.types.UiConfFilter;
 import com.kaltura.client.utils.request.RequestElement;
 import com.kaltura.client.utils.response.base.Response;
 import com.tle.beans.entity.BaseEntityLabel;
+import com.tle.beans.item.attachments.IAttachment;
 import com.tle.common.Check;
 import com.tle.common.EntityPack;
 import com.tle.common.beans.exception.InvalidDataException;
 import com.tle.common.beans.exception.ValidationError;
 import com.tle.common.i18n.LangUtils;
+import com.tle.common.kaltura.KalturaUtils;
 import com.tle.common.kaltura.entity.KalturaServer;
 import com.tle.common.security.PrivilegeTree.Node;
 import com.tle.core.entity.EntityEditingBean;
@@ -60,6 +62,8 @@ import com.tle.core.kaltura.dao.KalturaDao;
 import com.tle.core.security.impl.SecureEntity;
 import com.tle.core.security.impl.SecureOnReturn;
 import java.io.IOException;
+import java.text.MessageFormat;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -421,24 +425,64 @@ public class KalturaServiceImpl
   }
 
   @Override
-  public UiConf getUIConfig(KalturaServer ks) {
-    return getUIConfig(ks, null);
+  public boolean hasConf(KalturaServer ks, String confId) {
+    return getUIConfig(ks, confId).isPresent();
   }
 
   @Override
-  public boolean hasConf(KalturaServer ks, String confId) {
-    return getUIConfig(ks, confId) != null;
+  public UiConf getPlayerConfig(KalturaServer ks, String confId) {
+    return getUIConfig(ks, confId).orElseThrow(
+            () -> new RuntimeException("Failed to get Kaltura player for " + confId)
+    );
   }
 
-  private UiConf getUIConfig(KalturaServer ks, String confId) {
-    int playerId = confId != null ? Integer.parseInt(confId) : ks.getKdpUiConfId();
+  @Override
+  public String kalturaPlayerId() {
+    return "kaltura_player_" + Instant.now().toEpochMilli();
+  }
 
+  @Override
+  public String createPlayerEmbedUrl(IAttachment attachment, String playerId, String uiConfId) {
+    String entryId = (String) attachment.getData(KalturaUtils.PROPERTY_ENTRY_ID);
+
+    String ksUuid = (String) attachment.getData(KalturaUtils.PROPERTY_KALTURA_SERVER);
+    KalturaServer ks = getByUuid(ksUuid);
+
+    UiConf playerConfig = getPlayerConfig(ks, uiConfId);
+
+    String embedUrlPattern = playerConfig.getHtml5Url() == null ?
+        "https://cdnapisec.kaltura.com/p/{0}/embedPlaykitJs/uiconf_id/{2}/?autoembed=true&targetId={3}&entry_id={4}":
+        "https://cdnapisec.kaltura.com/p/{0}/sp/{1}/embedIframeJs/uiconf_id/{2}/partner_id/{0}?autoembed=true&playerId={3}&entry_id={4}";
+
+    return MessageFormat.format(embedUrlPattern,
+        Integer.toString(ks.getPartnerId()), Integer.toString(ks.getSubPartnerId()), Integer.toString(playerConfig.getId()), playerId, entryId);
+  }
+
+  /**
+   * Attempt to get UI config ID from Kaltura setting, or use the ID of OEQ default player if not found.
+   *
+   */
+  private int getUiConfId(KalturaServer ks)
+  {
+    return Optional.of(Integer.toString(ks.getKdpUiConfId()))
+            .filter(confId -> !Check.isEmpty(confId))
+            .map(Integer::parseInt)
+            .orElse(getDefaultKdpUiConf(ks).getId());
+  }
+
+  /**
+   * Get UI configuration by ID. If no ID is provided, find the default ID from attachment and setting.
+   */
+  private Optional<UiConf> getUIConfig(KalturaServer ks, String confId) {
+    int playerId = Optional.ofNullable(confId)
+            .filter(id -> !Check.isEmpty(id.trim()))
+            .map(Integer::parseInt).orElse(getUiConfId(ks));
     try {
       Client client = getKalturaClient(ks, SessionType.ADMIN);
-      return execute(UiConfService.get(playerId).build(client));
+      return Optional.of(execute(UiConfService.get(playerId).build(client)));
     } catch (APIException e) {
       LOGGER.error("Failed to get Kaltura player", e);
-      return null;
+      return Optional.empty();
     }
   }
 }

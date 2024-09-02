@@ -73,9 +73,11 @@ public class KalturaAttachmentSerializer extends AbstractAttachmentSerializer
 		}
 
 		KalturaServer ks = kalturaService.getByUuid(kbean.getKalturaServer());
-		UiConf uiConf = kalturaService.getUIConfig(ks);
+
+		String uiConfId  = (String) cattach.getData(KalturaUtils.PROPERTY_CUSTOM_PLAYER);
+		UiConf uiConf = kalturaService.getPlayerConfig(ks, uiConfId);
 		kbean.setPlayerConfig(uiConf.getWidth(), uiConf.getHeight(), uiConf.getHtml5Url() == null);
-		kbean.setExternalId(ks.getPartnerId(), ks.getKdpUiConfId());
+		kbean.setExternalId(ks.getPartnerId(), uiConf.getId());
 
 		return kbean;
 	}

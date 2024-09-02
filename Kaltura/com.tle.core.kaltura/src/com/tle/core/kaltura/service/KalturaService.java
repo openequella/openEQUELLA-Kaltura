@@ -17,6 +17,8 @@
 package com.tle.core.kaltura.service;
 
 import com.kaltura.client.types.ListResponse;
+import com.tle.annotation.Nullable;
+import com.tle.beans.item.attachments.IAttachment;
 import java.util.Collection;
 import java.util.List;
 
@@ -25,7 +27,6 @@ import com.kaltura.client.types.APIException;
 import com.kaltura.client.Client;
 import com.kaltura.client.enums.SessionType;
 import com.kaltura.client.types.MediaEntry;
-import com.kaltura.client.services.MediaService.ListMediaBuilder;
 import com.kaltura.client.types.UiConf;
 import com.tle.common.kaltura.entity.KalturaServer;
 import com.tle.common.kaltura.service.RemoteKalturaService;
@@ -59,9 +60,28 @@ public interface KalturaService extends AbstractEntityService<EntityEditingBean,
   /**
    * Get the configuration of the selected Kaltura player.
    */
-  UiConf getUIConfig(KalturaServer ks);
+  UiConf getPlayerConfig(KalturaServer ks, String uiConfId);
 
+	/**
+	 * Whether a Kaltura player configuration can be found by the provided ID.
+	 */
 	boolean hasConf(KalturaServer ks, String confId);
 
 	boolean isUp(KalturaServer ks);
+
+	/**
+	 * Create the Kaltura player embed URL. Both the v2 and v7 players are supported.
+	 *
+	 * @param attachment Kaltura resource for which to build the embed URL.
+	 * @param playerId Random ID generated for the DIV element that will display the resource. Recommended to
+	 * 			call {@link #kalturaPlayerId()} to generate this ID.
+	 * @param uiConfId ID of a Kaltura player used to get the player configuration. If absent, the default
+	 * 			player ID will be used.
+	 */
+	String createPlayerEmbedUrl(IAttachment attachment, String playerId, @Nullable String uiConfId);
+
+	/**
+	 * Generate a random ID for the DIV element that will display the Kaltura resource.
+	 */
+	String kalturaPlayerId() ;
 }

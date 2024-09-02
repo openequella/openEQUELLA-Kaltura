@@ -485,19 +485,12 @@ public class KalturaHandler extends BasicAbstractAttachmentHandler<KalturaHandle
 								finishedCallback)));
 	}
 
-	private void setupKalturaKdp(SectionInfo context, KalturaServer ks, String flashUrl)
+	private void setupKalturaKdp(SectionInfo context, IAttachment attachment)
 	{
-		ObjectExpression kdpVars = new ObjectExpression();
-
-		kdpVars.put("flashVersion", "9.0.0");
-		kdpVars.put("width", "300");
-		kdpVars.put("height", "200");
-		kdpVars.put("embedUrl", flashUrl);
-
-		divKdp.addReadyStatements(context,
-				new FunctionCallStatement(new FunctionCallExpression(new ExternallyDefinedFunction("setupKDP",
-						SwfObject.PRERENDER, new IncludeFile(KALTURA), new IncludeFile(createHtml5embed(ks))),
-						divKdp.getElementId(context), kdpVars)));
+		KalturaHandlerModel model = getModel(context);
+		String playerId = kalturaService.kalturaPlayerId();
+		model.setPlayerId(playerId);
+		model.setViewerUrl(kalturaService.createPlayerEmbedUrl(attachment, playerId, players.getSelectedValueAsString(context)));
 	}
 
 	private SectionRenderable renderChoice(RenderContext context, DialogRenderOptions renderOptions)
@@ -526,13 +519,10 @@ public class KalturaHandler extends BasicAbstractAttachmentHandler<KalturaHandle
 
 		KalturaHandlerModel model = getModel(context);
 		final Attachment a = getDetailsAttachment(context);
-		String embedUrl = createFlashEmbedUrl(ks, (String) a.getData(KalturaUtils.PROPERTY_ENTRY_ID),
-				getKdpUiConfId(context, ks, true));
-		model.addSpecificDetail("dataurl", new Pair<Label, Object>(null, embedUrl));
 		model.setShowPlayers(players.getListModel().getOptions(context).size() > 1);
 
 		// Setup preview embed
-		setupKalturaKdp(context, ks, embedUrl);
+		setupKalturaKdp(context, a);
 
 		// Get common details from viewable resource
 		ItemSectionInfo itemInfo = context.getAttributeForClass(ItemSectionInfo.class);
@@ -782,6 +772,8 @@ public class KalturaHandler extends BasicAbstractAttachmentHandler<KalturaHandle
 		private boolean searchPerformed;
 		private SectionRenderable kalturaLogo;
 		private Label kalturaServer;
+		private String playerId;
+		private String viewerUrl;
 
 		public List<KalturaUploadInfo> getUploads()
 		{
@@ -844,6 +836,22 @@ public class KalturaHandler extends BasicAbstractAttachmentHandler<KalturaHandle
 		public void setKalturaServer(Label kalturaServer)
 		{
 			this.kalturaServer = kalturaServer;
+		}
+
+		public String getPlayerId() {
+			return playerId;
+		}
+
+		public void setPlayerId(String playerId) {
+			this.playerId = playerId;
+		}
+
+		public String getViewerUrl() {
+			return viewerUrl;
+		}
+
+		public void setViewerUrl(String viewerUrl) {
+			this.viewerUrl = viewerUrl;
 		}
 	}
 

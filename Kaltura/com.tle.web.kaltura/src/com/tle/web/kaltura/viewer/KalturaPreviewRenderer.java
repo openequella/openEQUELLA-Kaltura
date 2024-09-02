@@ -16,11 +16,14 @@
 
 package com.tle.web.kaltura.viewer;
 
+import com.tle.web.sections.SectionWriter;
+import com.tle.web.sections.render.CombinedRenderer;
+import com.tle.web.sections.standard.renderers.AbstractComponentRenderer;
+import com.tle.web.sections.standard.renderers.DivRenderer;
+import java.io.IOException;
 import java.text.MessageFormat;
-import java.util.UUID;
-
+import java.util.Map;
 import javax.inject.Inject;
-
 import com.tle.beans.item.attachments.Attachment;
 import com.tle.beans.item.attachments.IAttachment;
 import com.tle.common.Check;
@@ -29,18 +32,11 @@ import com.tle.common.kaltura.entity.KalturaServer;
 import com.tle.core.guice.Bind;
 import com.tle.core.kaltura.service.KalturaService;
 import com.tle.web.searching.VideoPreviewRenderer;
-import com.tle.web.sections.equella.annotation.PlugURL;
 import com.tle.web.sections.events.PreRenderContext;
 import com.tle.web.sections.events.RenderContext;
-import com.tle.web.sections.js.generic.Js;
-import com.tle.web.sections.js.generic.expression.ObjectExpression;
-import com.tle.web.sections.js.generic.function.ExternallyDefinedFunction;
-import com.tle.web.sections.js.generic.function.IncludeFile;
 import com.tle.web.sections.render.SectionRenderable;
 import com.tle.web.sections.render.TagRenderer;
-import com.tle.web.sections.render.TagState;
 import com.tle.web.sections.standard.model.HtmlComponentState;
-import com.tle.web.sections.swfobject.SwfObject;
 import com.tle.web.viewable.ViewableItem;
 
 /**
@@ -49,18 +45,11 @@ import com.tle.web.viewable.ViewableItem;
 @Bind
 public class KalturaPreviewRenderer implements VideoPreviewRenderer
 {
-	@PlugURL("js/kalturaviewerembed.js")
-	private static String KALTURA_VIEWER;
-
 	@Inject
 	private KalturaService kalturaService;
 
 	@Override
-	public void preRender(PreRenderContext context)
-	{
-		context.preRender(SwfObject.PRERENDER);
-		context.preRender(new IncludeFile(KALTURA_VIEWER));
-	}
+	public void preRender(PreRenderContext context) { }
 
 	@Override
 	public SectionRenderable renderPreview(RenderContext context, Attachment attachment, ViewableItem<?> vitem,
@@ -73,25 +62,36 @@ public class KalturaPreviewRenderer implements VideoPreviewRenderer
 
 			if( !Check.isEmpty(entryId) && !Check.isEmpty(uuid) )
 			{
-				KalturaServer ks = kalturaService.getByUuid(uuid);
-				String kdpUiConfId = getKdpUiConfId(ks, attachment);
+				String uiConfId = (String) attachment.getData(KalturaUtils.PROPERTY_CUSTOM_PLAYER);
 
-				ObjectExpression kdpVars = new ObjectExpression();
-				kdpVars.put("flashVersion", "9.0.0");
-				kdpVars.put("width", 320);
-				kdpVars.put("height", 180);
-				kdpVars.put("embedUrl", createFlashEmbed(ks, kdpUiConfId, entryId));
+				String playerId = kalturaService.kalturaPlayerId();
 
-				String kalturaPlayerId = "kalturaplayer" + UUID.randomUUID();
-				TagState state = new HtmlComponentState();
-				state.addReadyStatements(Js.statement(Js.call(new ExternallyDefinedFunction("setupKDP",
-					SwfObject.PRERENDER, new IncludeFile(createHtml5embed(ks, kdpUiConfId)), new IncludeFile(
-						KALTURA_VIEWER)), kalturaPlayerId, kdpVars)));
+				// This is the div where the video is embedded into.
+				DivRenderer playerDiv = new DivRenderer(new HtmlComponentState());
+				playerDiv.setId(playerId);
+				playerDiv.setStyles("width: 320px; height: 180px", null, null);
 
-				TagRenderer tag = new TagRenderer("div", state);
-				tag.setId(kalturaPlayerId);
+				// This is script tag that points to Kaltura player embed URL.
+				TagRenderer playerScript = new AbstractComponentRenderer(new HtmlComponentState()) {
+					@Override
+					protected String getTag() {
+						return "script";
+					}
 
-				return tag;
+					@Override
+					protected void prepareFirstAttributes(SectionWriter writer, Map<String, String> attrs)
+							throws IOException {
+						super.prepareFirstAttributes(writer, attrs);
+						attrs.put("src", kalturaService.createPlayerEmbedUrl(attachment, playerId, uiConfId));
+					}
+				};
+
+				// Combine above two tags into one renderer.
+				CombinedRenderer combined = new CombinedRenderer();
+				combined.addRenderer(playerDiv);
+				combined.addRenderer(playerScript);
+
+				return combined;
 			}
 		}
 

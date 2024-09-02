@@ -86,38 +86,6 @@ public class KalturaViewerSection extends AbstractViewerSection<KalturaViewerSec
 		return viewFactory.createTemplateResult("viewer/kalturaviewer.ftl", this);
 	}
 
-	private String createPlayerEmbed(boolean useV7, KalturaServer ks, IAttachment a, String playerId, String entryId)
-	{
-		String embedUrlPattern = useV7 ?
-				"https://cdnapisec.kaltura.com/p/{0}/embedPlaykitJs/uiconf_id/{2}/?autoembed=true&targetId={3}&entry_id={4}":
-				"https://cdnapisec.kaltura.com/p/{0}/sp/{1}/embedIframeJs/uiconf_id/{2}/partner_id/{0}?autoembed=true&playerId={3}&entry_id={4}";
-
-		return MessageFormat.format(embedUrlPattern,
-				Integer.toString(ks.getPartnerId()), Integer.toString(ks.getSubPartnerId()), getKdpUiConfId(ks, a), playerId, entryId);
-	}
-
-	private String getKdpUiConfId(KalturaServer ks, IAttachment a)
-	{
-		// Attachment custom
-		String uiConfId = (String) a.getData(KalturaUtils.PROPERTY_CUSTOM_PLAYER);
-
-		if( !Check.isEmpty(uiConfId) && kalturaService.hasConf(ks, uiConfId) )
-		{
-			return uiConfId;
-		}
-
-		// Server default
-		uiConfId = Integer.toString(ks.getKdpUiConfId());
-		if( !Check.isEmpty(uiConfId) && kalturaService.hasConf(ks, uiConfId) )
-		{
-			return uiConfId;
-		}
-
-		// EQUELLA default
-		uiConfId = Integer.toString(kalturaService.getDefaultKdpUiConf(ks).getId());
-		return uiConfId;
-	}
-
 	private KalturaServer getKalturaServer(String uuid)
 	{
 		return kalturaService.getByUuid(uuid);
@@ -127,20 +95,15 @@ public class KalturaViewerSection extends AbstractViewerSection<KalturaViewerSec
 	{
 		final IAttachment a = getAttachment(resource);
 
-		String entryId = (String) a.getData(KalturaUtils.PROPERTY_ENTRY_ID);
-		String uuid = (String) a.getData(KalturaUtils.PROPERTY_KALTURA_SERVER);
-
-		KalturaServer ks = getKalturaServer(uuid);
-
 		KalturaViewerSectionModel model = getModel(info);
 		model.setWidth(width);
 		model.setHeight(height);
 
-		String playerId = "kaltura_player_" + Instant.now().toEpochMilli();
+		String playerId = kalturaService.kalturaPlayerId();
 		model.setPlayerId(playerId);
 
-		UiConf uiConf = kalturaService.getUIConfig(ks);
-		model.setViewerUrl(createPlayerEmbed(uiConf.getHtml5Url() == null, ks, a, playerId, entryId));
+		String uiConfId  = (String) a.getData(KalturaUtils.PROPERTY_CUSTOM_PLAYER);
+		model.setViewerUrl(kalturaService.createPlayerEmbedUrl(a, playerId, uiConfId));
 	}
 
 	private IAttachment getAttachment(ViewItemResource resource)
