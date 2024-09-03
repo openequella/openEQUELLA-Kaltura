@@ -16,9 +16,6 @@
 
 package com.tle.web.kaltura.viewer;
 
-import com.kaltura.client.types.UiConf;
-import java.text.MessageFormat;
-import java.time.Instant;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
@@ -103,7 +100,7 @@ public class KalturaViewerSection extends AbstractViewerSection<KalturaViewerSec
 		model.setPlayerId(playerId);
 
 		String uiConfId  = (String) a.getData(KalturaUtils.PROPERTY_CUSTOM_PLAYER);
-		model.setViewerUrl(kalturaService.createPlayerEmbedUrl(a, playerId, uiConfId));
+		model.setViewerUrl(kalturaService.createPlayerEmbedUrl(a, playerId, true, uiConfId));
 	}
 
 	private IAttachment getAttachment(ViewItemResource resource)

@@ -207,7 +207,7 @@ public class KalturaServerEditorSection
 						opts.add(new NameValue(uiConf.getName(), Integer.toString(uiConf.getId())));
 					}
 
-					Collections.sort(opts, new Comparator<NameValue>()
+					opts.sort( new Comparator<NameValue>()
 					{
 						@Override
 						public int compare(NameValue nv1, NameValue nv2)
@@ -216,9 +216,8 @@ public class KalturaServerEditorSection
 						}
 					});
 
-					opts.add(
-						0,
-						new BundleNameValue(EQUELLA_DEFAULT,
+					opts.addFirst(
+              new BundleNameValue(EQUELLA_DEFAULT,
 							Integer.toString(kalturaService.getDefaultKdpUiConf(ks).getId())));
 				}
 				return opts;

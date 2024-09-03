@@ -16,11 +16,9 @@
 
 package com.tle.core.kaltura.service;
 
-import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.io.Resources;
 import com.google.inject.Singleton;
 import com.kaltura.client.APIOkRequestsExecutor;
 import com.kaltura.client.Client;
@@ -95,8 +93,8 @@ public class KalturaServiceImpl
     kalturaDao = dao;
   }
 
-  // Increase number on the end to replace
-  private static final String EQUELLA_KDP_UICONF = "EQUELLA-KDP-UICONF_5.2-114";
+  private static final String DEFAULT_KALTURA_PLAYER_PREFIX = "OEQ_DEFAULT_KALTURA_PLAYER";
+  private static final String DEFAULT_KALTURA_PLAYER_NAME = DEFAULT_KALTURA_PLAYER_PREFIX + "_V7_LATEST";
 
   // A cache to protect against excessive calls to Kaltura. There is a small risk of a period when
   // incorrect results could then be returned - however if needs be a restart can navigate it.
@@ -214,7 +212,7 @@ public class KalturaServiceImpl
       Client kc = getKalturaClient(ks, SessionType.ADMIN);
 
       UiConfFilter kcf = new UiConfFilter();
-      kcf.setNameLike("EQUELLA-KDP-UICONF_5.2");
+      kcf.setNameLike(DEFAULT_KALTURA_PLAYER_PREFIX);
       kcf.setObjTypeEqual(UiConfObjType.PLAYER_V3);
 
       ListResponse<UiConf> uiList = execute(UiConfService.list(kcf).build(kc));
@@ -231,8 +229,8 @@ public class KalturaServiceImpl
         conf = createDefaultKDPUiConf(kc);
       } else {
         // If there is one is it the latest
-        conf = uiList.getObjects().get(0);
-        if (!conf.getName().equals(EQUELLA_KDP_UICONF)) {
+        conf = uiList.getObjects().getFirst();
+        if (!conf.getName().equals(DEFAULT_KALTURA_PLAYER_NAME)) {
           execute(UiConfService.delete(conf.getId()).build(kc));
           conf = createDefaultKDPUiConf(kc);
         }
@@ -245,20 +243,26 @@ public class KalturaServiceImpl
   }
 
   private UiConf createDefaultKDPUiConf(Client client) throws IOException, APIException {
+    // Standard configurations copied from Kaltura default v7 player.
+    final String CONF_VARS = "{\"versions\":{\"kaltura-ovp-player\":\"{latest}\",\"playkit-kaltura-live\":\"{latest}\",\"playkit-visibility\":\"{latest}\",\"playkit-dual-screen\":\"{latest}\",\"playkit-ivq\":\"{latest}\",\"playkit-hotspots\":\"{latest}\",\"playkit-moderation\":\"{latest}\",\"playkit-playlist\":\"{latest}\",\"playkit-transcript\":\"{latest}\",\"playkit-navigation\":\"{latest}\",\"playkit-qna\":\"{latest}\",\"playkit-image-player\":\"{latest}\"},\"langs\":[\"en\",\"zh_cn\",\"zh_tw\",\"ja\",\"ko\",\"it\",\"es\",\"fi\",\"nl\",\"fr\",\"ar\",\"ru\",\"de\",\"pt_br\"]}";
+    final String TAGS = "autodeploy, kms_v5.0.0, kms_mainplayer,kalturaPlayerJs,player,ovp";
+    final int WIDTH = 560;
+    final int HEIGHT = 395;
+    final String SWF_URL = "/";
+
     UiConf equellaKdpUiConf = new UiConf();
+    // Not entirely sure the difference between PLAYER, PLAYER_V3 AND PLAYER_SL. Maybe used
+    // to differentiate where the player is created (e.g. through API or in KMC).
     equellaKdpUiConf.setObjType(UiConfObjType.PLAYER_V3);
     equellaKdpUiConf.setCreationMode(UiConfCreationMode.ADVANCED);
-    equellaKdpUiConf.setSwfUrl("/flash/kdp3/v3.5.35/kdp3.swf");
-    equellaKdpUiConf.setConfFile(readUiConfXml("default_kdp_ui_conf.xml"));
-    equellaKdpUiConf.setName(EQUELLA_KDP_UICONF);
-    equellaKdpUiConf.setTags("kdp3,player");
-    equellaKdpUiConf.setUseCdn(true);
+    equellaKdpUiConf.setSwfUrl(SWF_URL);
+    equellaKdpUiConf.setName(DEFAULT_KALTURA_PLAYER_NAME);
+    equellaKdpUiConf.setTags(TAGS);
+    equellaKdpUiConf.setWidth(WIDTH);
+    equellaKdpUiConf.setHeight(HEIGHT);
+    equellaKdpUiConf.setConfVars(CONF_VARS);
 
     return execute(UiConfService.add(equellaKdpUiConf).build(client));
-  }
-
-  private String readUiConfXml(String filename) throws IOException {
-    return Resources.toString(KalturaServiceImpl.class.getResource(filename), Charsets.UTF_8);
   }
 
   @Override
@@ -426,12 +430,12 @@ public class KalturaServiceImpl
 
   @Override
   public boolean hasConf(KalturaServer ks, String confId) {
-    return getUIConfig(ks, confId).isPresent();
+    return getUiConfig(ks, confId).isPresent();
   }
 
   @Override
   public UiConf getPlayerConfig(KalturaServer ks, String confId) {
-    return getUIConfig(ks, confId).orElseThrow(
+    return getUiConfig(ks, confId).orElseThrow(
             () -> new RuntimeException("Failed to get Kaltura player for " + confId)
     );
   }
@@ -442,41 +446,48 @@ public class KalturaServiceImpl
   }
 
   @Override
-  public String createPlayerEmbedUrl(IAttachment attachment, String playerId, String uiConfId) {
+  public String createPlayerEmbedUrl(IAttachment attachment, String playerId, boolean autoEmbed, String uiConfId) {
     String entryId = (String) attachment.getData(KalturaUtils.PROPERTY_ENTRY_ID);
 
     String ksUuid = (String) attachment.getData(KalturaUtils.PROPERTY_KALTURA_SERVER);
     KalturaServer ks = getByUuid(ksUuid);
 
     UiConf playerConfig = getPlayerConfig(ks, uiConfId);
+    String embedType = autoEmbed ? "autoembed" : "iframeembed";
 
     String embedUrlPattern = playerConfig.getHtml5Url() == null ?
-        "https://cdnapisec.kaltura.com/p/{0}/embedPlaykitJs/uiconf_id/{2}/?autoembed=true&targetId={3}&entry_id={4}":
-        "https://cdnapisec.kaltura.com/p/{0}/sp/{1}/embedIframeJs/uiconf_id/{2}/partner_id/{0}?autoembed=true&playerId={3}&entry_id={4}";
+        "https://cdnapisec.kaltura.com/p/{0}/embedPlaykitJs/uiconf_id/{2}/?{3}=true&targetId={4}&entry_id={5}":
+        "https://cdnapisec.kaltura.com/p/{0}/sp/{1}/embedIframeJs/uiconf_id/{2}/partner_id/{0}?{3}=true&playerId={4}&entry_id={5}";
 
     return MessageFormat.format(embedUrlPattern,
-        Integer.toString(ks.getPartnerId()), Integer.toString(ks.getSubPartnerId()), Integer.toString(playerConfig.getId()), playerId, entryId);
+        Integer.toString(ks.getPartnerId()),
+            Integer.toString(ks.getSubPartnerId()),
+            Integer.toString(playerConfig.getId()),
+            embedType,
+            playerId,
+            entryId
+    );
   }
 
   /**
    * Attempt to get UI config ID from Kaltura setting, or use the ID of OEQ default player if not found.
    *
    */
-  private int getUiConfId(KalturaServer ks)
+  private int getUiConfIdFromSetting(KalturaServer ks)
   {
     return Optional.of(Integer.toString(ks.getKdpUiConfId()))
             .filter(confId -> !Check.isEmpty(confId))
             .map(Integer::parseInt)
-            .orElse(getDefaultKdpUiConf(ks).getId());
+            .orElseGet(() -> getDefaultKdpUiConf(ks).getId());
   }
 
   /**
    * Get UI configuration by ID. If no ID is provided, find the default ID from attachment and setting.
    */
-  private Optional<UiConf> getUIConfig(KalturaServer ks, String confId) {
+  private Optional<UiConf> getUiConfig(KalturaServer ks, String confId) {
     int playerId = Optional.ofNullable(confId)
             .filter(id -> !Check.isEmpty(id.trim()))
-            .map(Integer::parseInt).orElse(getUiConfId(ks));
+            .map(Integer::parseInt).orElseGet(() -> getUiConfIdFromSetting(ks));
     try {
       Client client = getKalturaClient(ks, SessionType.ADMIN);
       return Optional.of(execute(UiConfService.get(playerId).build(client)));

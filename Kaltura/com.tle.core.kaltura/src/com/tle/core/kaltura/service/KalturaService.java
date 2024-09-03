@@ -70,15 +70,17 @@ public interface KalturaService extends AbstractEntityService<EntityEditingBean,
 	boolean isUp(KalturaServer ks);
 
 	/**
-	 * Create the Kaltura player embed URL. Both the v2 and v7 players are supported.
+	 * Create the Kaltura player embed URL for both the v2 and v7 players. Auto embed and iframe embed
+	 * are both supported.
 	 *
 	 * @param attachment Kaltura resource for which to build the embed URL.
 	 * @param playerId Random ID generated for the DIV element that will display the resource. Recommended to
 	 * 			call {@link #kalturaPlayerId()} to generate this ID.
+	 * @param autoEmbed `true` to use `autoembed`, or `iframeembed` otherwise.
 	 * @param uiConfId ID of a Kaltura player used to get the player configuration. If absent, the default
 	 * 			player ID will be used.
 	 */
-	String createPlayerEmbedUrl(IAttachment attachment, String playerId, @Nullable String uiConfId);
+	String createPlayerEmbedUrl(IAttachment attachment, String playerId, boolean autoEmbed, @Nullable String uiConfId);
 
 	/**
 	 * Generate a random ID for the DIV element that will display the Kaltura resource.

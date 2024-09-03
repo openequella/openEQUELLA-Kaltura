@@ -21,14 +21,11 @@ import com.tle.web.sections.render.CombinedRenderer;
 import com.tle.web.sections.standard.renderers.AbstractComponentRenderer;
 import com.tle.web.sections.standard.renderers.DivRenderer;
 import java.io.IOException;
-import java.text.MessageFormat;
 import java.util.Map;
 import javax.inject.Inject;
 import com.tle.beans.item.attachments.Attachment;
-import com.tle.beans.item.attachments.IAttachment;
 import com.tle.common.Check;
 import com.tle.common.kaltura.KalturaUtils;
-import com.tle.common.kaltura.entity.KalturaServer;
 import com.tle.core.guice.Bind;
 import com.tle.core.kaltura.service.KalturaService;
 import com.tle.web.searching.VideoPreviewRenderer;
@@ -82,7 +79,7 @@ public class KalturaPreviewRenderer implements VideoPreviewRenderer
 					protected void prepareFirstAttributes(SectionWriter writer, Map<String, String> attrs)
 							throws IOException {
 						super.prepareFirstAttributes(writer, attrs);
-						attrs.put("src", kalturaService.createPlayerEmbedUrl(attachment, playerId, uiConfId));
+						attrs.put("src", kalturaService.createPlayerEmbedUrl(attachment, playerId, true, uiConfId));
 					}
 				};
 
@@ -96,40 +93,6 @@ public class KalturaPreviewRenderer implements VideoPreviewRenderer
 		}
 
 		return null;
-	}
-
-	private String createHtml5embed(KalturaServer ks, String kdpUiConfId)
-	{
-		return MessageFormat.format("{0}/p/{1}/embedIframeJs/uiconf_id/{2}/partner_id/{1}", ks.getEndPoint(),
-			Integer.toString(ks.getPartnerId()), kdpUiConfId);
-	}
-
-	private String createFlashEmbed(KalturaServer ks, String kdpUiConfId, String entryId)
-	{
-		return MessageFormat.format("{0}/kwidget/wid/_{1}/uiconf_id/{2}/entry_id/{3}", ks.getEndPoint(),
-			Integer.toString(ks.getPartnerId()), kdpUiConfId, entryId);
-	}
-
-	private String getKdpUiConfId(KalturaServer ks, IAttachment a)
-	{
-		// // Attachment custom
-		String uiConfId = (String) a.getData(KalturaUtils.PROPERTY_CUSTOM_PLAYER);
-
-		if( !Check.isEmpty(uiConfId) && kalturaService.hasConf(ks, uiConfId) )
-		{
-			return uiConfId;
-		}
-
-		// Server default
-		uiConfId = Integer.toString(ks.getKdpUiConfId());
-		if( !Check.isEmpty(uiConfId) && kalturaService.hasConf(ks, uiConfId) )
-		{
-			return uiConfId;
-		}
-
-		// EQUELLA default
-		uiConfId = Integer.toString(kalturaService.getDefaultKdpUiConf(ks).getId());
-		return uiConfId;
 	}
 
 	@Override
