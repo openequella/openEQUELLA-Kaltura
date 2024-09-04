@@ -109,6 +109,11 @@ public class KalturaAttachmentBean extends EquellaAttachmentBean {
     this.externalId = String.format("%d/%d/%s", partnerId, uiConfId, mediaId);
   }
 
+  @Override
+  public Optional<String> getExternalId() {
+    return Optional.of(externalId);
+  }
+
   public void setPlayerConfig(int width, int height, boolean isV7Player) {
     PlayerConfig config = new PlayerConfig();
     config.setHeight(height);
@@ -117,10 +122,6 @@ public class KalturaAttachmentBean extends EquellaAttachmentBean {
     this.playerConfig = config;
   }
 
-  @Override
-  public Optional<String> getExternalId() {
-    return Optional.of(externalId);
-  }
 
   @Override
   public Optional<Map<String, String>> getViewerConfig() {
