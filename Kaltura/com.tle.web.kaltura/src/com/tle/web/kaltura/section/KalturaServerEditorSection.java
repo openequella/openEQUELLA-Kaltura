@@ -217,7 +217,7 @@ public class KalturaServerEditorSection
 					});
 
 					opts.addFirst(
-              new BundleNameValue(EQUELLA_DEFAULT,
+							new BundleNameValue(EQUELLA_DEFAULT,
 							Integer.toString(kalturaService.getDefaultKdpUiConf(ks).getId())));
 				}
 				return opts;

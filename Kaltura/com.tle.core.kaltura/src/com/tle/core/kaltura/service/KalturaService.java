@@ -33,57 +33,60 @@ import com.tle.common.kaltura.service.RemoteKalturaService;
 import com.tle.core.entity.service.AbstractEntityService;
 import com.tle.core.entity.EntityEditingBean;
 
-public interface KalturaService extends AbstractEntityService<EntityEditingBean, KalturaServer>, RemoteKalturaService
-{
-	ListResponse<MediaEntry> searchMedia(Client client, Collection<String> keywords, int page, int limit);
+public interface KalturaService extends AbstractEntityService<EntityEditingBean, KalturaServer>,
+    RemoteKalturaService {
 
-	MediaEntry getMediaEntry(Client client, String entryId);
+  ListResponse<MediaEntry> searchMedia(Client client, Collection<String> keywords, int page,
+      int limit);
 
-	ListResponse<MediaEntry> getMediaEntries(Client client, List<String> entryIds);
+  MediaEntry getMediaEntry(Client client, String entryId);
 
-	Client getKalturaClient(KalturaServer kalturaServer, SessionType type) throws APIException;
+  ListResponse<MediaEntry> getMediaEntries(Client client, List<String> entryIds);
 
-	UiConf getDefaultKdpUiConf(KalturaServer ks);
+  Client getKalturaClient(KalturaServer kalturaServer, SessionType type) throws APIException;
 
-	boolean testKalturaSetup(KalturaServer kalturaServer, SessionType type) throws APIException;
+  UiConf getDefaultKdpUiConf(KalturaServer ks);
 
-	String addKalturaServer(KalturaServer kalturaServer) throws InvalidDataException;
+  boolean testKalturaSetup(KalturaServer kalturaServer, SessionType type) throws APIException;
 
-	void editKalturaServer(String ksUuid, KalturaServer kalturaServer) throws InvalidDataException;
+  String addKalturaServer(KalturaServer kalturaServer) throws InvalidDataException;
 
-	KalturaServer getForEdit(String kalturaServerUuid);
+  void editKalturaServer(String ksUuid, KalturaServer kalturaServer) throws InvalidDataException;
 
-	List<UiConf> getPlayers(KalturaServer ks);
+  KalturaServer getForEdit(String kalturaServerUuid);
 
-	void enable(KalturaServer ks, boolean enable);
+  List<UiConf> getPlayers(KalturaServer ks);
+
+  void enable(KalturaServer ks, boolean enable);
 
   /**
    * Get the configuration of the selected Kaltura player.
    */
   UiConf getPlayerConfig(KalturaServer ks, String uiConfId);
 
-	/**
-	 * Whether a Kaltura player configuration can be found by the provided ID.
-	 */
-	boolean hasConf(KalturaServer ks, String confId);
+  /**
+   * Whether a Kaltura player configuration can be found by the provided ID.
+   */
+  boolean hasConf(KalturaServer ks, String confId);
 
-	boolean isUp(KalturaServer ks);
+  boolean isUp(KalturaServer ks);
 
-	/**
-	 * Create the Kaltura player embed URL for both the v2 and v7 players. Auto embed and iframe embed
-	 * are both supported.
-	 *
-	 * @param attachment Kaltura resource for which to build the embed URL.
-	 * @param playerId Random ID generated for the DIV element that will display the resource. Recommended to
-	 * 			call {@link #kalturaPlayerId()} to generate this ID.
-	 * @param autoEmbed `true` to use `autoembed`, or `iframeembed` otherwise.
-	 * @param uiConfId ID of a Kaltura player used to get the player configuration. If absent, the default
-	 * 			player ID will be used.
-	 */
-	String createPlayerEmbedUrl(IAttachment attachment, String playerId, boolean autoEmbed, @Nullable String uiConfId);
+  /**
+   * Create the Kaltura player embed URL for both the v2 and v7 players. Auto embed and iframe embed
+   * are both supported.
+   *
+   * @param attachment Kaltura resource for which to build the embed URL.
+   * @param playerId Random ID generated for the DIV element that will display the resource.
+   * Recommended to call {@link #kalturaPlayerId()} to generate this ID.
+   * @param autoEmbed `true` to use `autoembed`, or `iframeembed` otherwise.
+   * @param uiConfId ID of a Kaltura player used to get the player configuration. If absent, the
+   * default player ID will be used.
+   */
+  String createPlayerEmbedUrl(IAttachment attachment, String playerId, boolean autoEmbed,
+      @Nullable String uiConfId);
 
-	/**
-	 * Generate a random ID for the DIV element that will display the Kaltura resource.
-	 */
-	String kalturaPlayerId() ;
+  /**
+   * Generate a random ID for the DIV element that will display the Kaltura resource.
+   */
+  String kalturaPlayerId();
 }

@@ -38,118 +38,114 @@ import com.tle.web.viewurl.ViewableResource;
 
 @Bind
 @SuppressWarnings("nls")
-public class KalturaViewerSection extends AbstractViewerSection<KalturaViewerSection.KalturaViewerSectionModel>
-{
-	@Inject
-	private MimeTypeService mimeTypeService;
-	@Inject
-	private KalturaService kalturaService;
+public class KalturaViewerSection extends
+    AbstractViewerSection<KalturaViewerSection.KalturaViewerSectionModel> {
 
-	@Override
-	public Collection<String> ensureOnePrivilege()
-	{
-		return VIEW_ITEM_AND_VIEW_ATTACHMENTS_PRIV;
-	}
+  @Inject
+  private MimeTypeService mimeTypeService;
+  @Inject
+  private KalturaService kalturaService;
 
-	@Override
-	public SectionResult view(RenderContext info, ViewItemResource resource)
-	{
-		Decorations.getDecorations(info).clearAllDecorations();
+  @Override
+  public Collection<String> ensureOnePrivilege() {
+    return VIEW_ITEM_AND_VIEW_ATTACHMENTS_PRIV;
+  }
 
-		String height = null;
-		String width = null;
+  @Override
+  public SectionResult view(RenderContext info, ViewItemResource resource) {
+    Decorations.getDecorations(info).clearAllDecorations();
 
-		ResourceViewerConfig config = getResourceViewerConfig(mimeTypeService, resource, "kalturaViewer");
+    String height = null;
+    String width = null;
 
-		if( config != null )
-		{
-			Map<String, Object> attr = config.getAttr();
-			height = (String) attr.get("kalturaHeight");
-			width = (String) attr.get("kalturaWidth");
-		}
+    ResourceViewerConfig config = getResourceViewerConfig(mimeTypeService, resource,
+        "kalturaViewer");
 
-		if( Check.isEmpty(width) || Objects.equals(width, "undefined") )
-		{
-			width = "100%";
-		}
+    if (config != null) {
+      Map<String, Object> attr = config.getAttr();
+      height = (String) attr.get("kalturaHeight");
+      width = (String) attr.get("kalturaWidth");
+    }
 
-		if( Check.isEmpty(height) || Objects.equals(height, "undefined") )
-		{
-			height = "100%";
-		}
+    if (Check.isEmpty(width) || Objects.equals(width, "undefined")) {
+      width = "100%";
+    }
 
-		setupKalturaKdp(info, resource, width, height);
+    if (Check.isEmpty(height) || Objects.equals(height, "undefined")) {
+      height = "100%";
+    }
 
-		return viewFactory.createTemplateResult("viewer/kalturaviewer.ftl", this);
-	}
+    setupKalturaKdp(info, resource, width, height);
 
-	private KalturaServer getKalturaServer(String uuid)
-	{
-		return kalturaService.getByUuid(uuid);
-	}
+    return viewFactory.createTemplateResult("viewer/kalturaviewer.ftl", this);
+  }
 
-	private void setupKalturaKdp(SectionInfo info, ViewItemResource resource, String width, String height)
-	{
-		final IAttachment a = getAttachment(resource);
+  private KalturaServer getKalturaServer(String uuid) {
+    return kalturaService.getByUuid(uuid);
+  }
 
-		KalturaViewerSectionModel model = getModel(info);
-		model.setWidth(width);
-		model.setHeight(height);
+  private void setupKalturaKdp(SectionInfo info, ViewItemResource resource, String width,
+      String height) {
+    final IAttachment a = getAttachment(resource);
 
-		String playerId = kalturaService.kalturaPlayerId();
-		model.setPlayerId(playerId);
+    KalturaViewerSectionModel model = getModel(info);
+    model.setWidth(width);
+    model.setHeight(height);
 
-		String uiConfId  = (String) a.getData(KalturaUtils.PROPERTY_CUSTOM_PLAYER);
-		model.setViewerUrl(kalturaService.createPlayerEmbedUrl(a, playerId, true, uiConfId));
-	}
+    String playerId = kalturaService.kalturaPlayerId();
+    model.setPlayerId(playerId);
 
-	private IAttachment getAttachment(ViewItemResource resource)
-	{
-		final ViewableResource viewableResource = resource.getAttribute(ViewableResource.class);
-		return viewableResource.getAttachment();
-	}
+    String uiConfId = (String) a.getData(KalturaUtils.PROPERTY_CUSTOM_PLAYER);
+    model.setViewerUrl(kalturaService.createPlayerEmbedUrl(a, playerId, true, uiConfId));
+  }
 
-	@Override
-	public Object instantiateModel(SectionInfo info) {
-		return new KalturaViewerSectionModel();
-	}
+  private IAttachment getAttachment(ViewItemResource resource) {
+    final ViewableResource viewableResource = resource.getAttribute(ViewableResource.class);
+    return viewableResource.getAttachment();
+  }
 
-	public static final class KalturaViewerSectionModel {
-		private String width = "100%";
-		private String height = "100%";
-		private String viewerUrl;
-		private String playerId;
+  @Override
+  public Object instantiateModel(SectionInfo info) {
+    return new KalturaViewerSectionModel();
+  }
 
-		public String getWidth() {
-			return width.endsWith("%") ? width : width + "px";
-		}
+  public static final class KalturaViewerSectionModel {
 
-		public void setWidth(String width) {
-			this.width = width;
-		}
+    private String width = "100%";
+    private String height = "100%";
+    private String viewerUrl;
+    private String playerId;
 
-		public String getHeight() {
-			return height.endsWith("%") ? height : height + "px";
-		}
+    public String getWidth() {
+      return width.endsWith("%") ? width : width + "px";
+    }
 
-		public void setHeight(String height) {
-			this.height = height;
-		}
+    public void setWidth(String width) {
+      this.width = width;
+    }
 
-		public String getViewerUrl() {
-			return viewerUrl;
-		}
+    public String getHeight() {
+      return height.endsWith("%") ? height : height + "px";
+    }
 
-		public void setViewerUrl(String viewerUrl) {
-			this.viewerUrl = viewerUrl;
-		}
+    public void setHeight(String height) {
+      this.height = height;
+    }
 
-		public String getPlayerId() {
-			return playerId;
-		}
+    public String getViewerUrl() {
+      return viewerUrl;
+    }
 
-		public void setPlayerId(String playerId) {
-			this.playerId = playerId;
-		}
-	}
+    public void setViewerUrl(String viewerUrl) {
+      this.viewerUrl = viewerUrl;
+    }
+
+    public String getPlayerId() {
+      return playerId;
+    }
+
+    public void setPlayerId(String playerId) {
+      this.playerId = playerId;
+    }
+  }
 }

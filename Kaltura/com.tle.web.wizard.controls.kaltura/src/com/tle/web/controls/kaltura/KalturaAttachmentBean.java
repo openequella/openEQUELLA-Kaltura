@@ -23,139 +23,125 @@ import java.util.Map;
 import java.util.Optional;
 
 @SuppressWarnings("nls")
-public class KalturaAttachmentBean extends EquellaAttachmentBean
-{
-	private String mediaId;
-	private String title;
-	private Date uploadedDate;
-	private String thumbUrl;
-	private String kalturaServer;
-	private String tags;
-	private long duration;
+public class KalturaAttachmentBean extends EquellaAttachmentBean {
 
-	/**
-	 * A string which is made up of the core elements required to generate a embedded Kaltura viewer.
-	 * It has the format of {@code <partner_id>/<uiconf_id>/<entryId>}.
-	 */
-	private String externalId;
+  private String mediaId;
+  private String title;
+  private Date uploadedDate;
+  private String thumbUrl;
+  private String kalturaServer;
+  private String tags;
+  private long duration;
 
-	/**
-	 * More details of the Kaltura player configured in the Kaltura Studio Management page.
-	 */
-	private PlayerConfig playerConfig;
+  /**
+   * A string which is made up of the core elements required to generate a embedded Kaltura viewer.
+   * It has the format of {@code <partner_id>/<uiconf_id>/<entryId>}.
+   */
+  private String externalId;
 
-	@Override
-	public String getRawAttachmentType()
-	{
-		return "custom/kaltura";
-	}
+  /**
+   * More details of the Kaltura player configured in the Kaltura Studio Management page.
+   */
+  private PlayerConfig playerConfig;
 
-	public String getMediaId()
-	{
-		return mediaId;
-	}
+  @Override
+  public String getRawAttachmentType() {
+    return "custom/kaltura";
+  }
 
-	public void setMediaId(String mediaId)
-	{
-		this.mediaId = mediaId;
-	}
+  public String getMediaId() {
+    return mediaId;
+  }
 
-	public String getTitle()
-	{
-		return title;
-	}
+  public void setMediaId(String mediaId) {
+    this.mediaId = mediaId;
+  }
 
-	public void setTitle(String title)
-	{
-		this.title = title;
-	}
+  public String getTitle() {
+    return title;
+  }
 
-	public Date getUploadedDate()
-	{
-		return uploadedDate;
-	}
+  public void setTitle(String title) {
+    this.title = title;
+  }
 
-	public void setUploadedDate(Date uploadedDate)
-	{
-		this.uploadedDate = uploadedDate;
-	}
+  public Date getUploadedDate() {
+    return uploadedDate;
+  }
 
-	public String getThumbUrl()
-	{
-		return thumbUrl;
-	}
+  public void setUploadedDate(Date uploadedDate) {
+    this.uploadedDate = uploadedDate;
+  }
 
-	public void setThumbUrl(String thumbUrl)
-	{
-		this.thumbUrl = thumbUrl;
-	}
+  public String getThumbUrl() {
+    return thumbUrl;
+  }
 
-	public String getTags()
-	{
-		return tags;
-	}
+  public void setThumbUrl(String thumbUrl) {
+    this.thumbUrl = thumbUrl;
+  }
 
-	public void setTags(String tags)
-	{
-		this.tags = tags;
-	}
+  public String getTags() {
+    return tags;
+  }
 
-	public long getDuration()
-	{
-		return duration;
-	}
+  public void setTags(String tags) {
+    this.tags = tags;
+  }
 
-	public void setDuration(long duration)
-	{
-		this.duration = duration;
-	}
+  public long getDuration() {
+    return duration;
+  }
 
-	public String getKalturaServer()
-	{
-		return kalturaServer;
-	}
+  public void setDuration(long duration) {
+    this.duration = duration;
+  }
 
-	public void setKalturaServer(String kalturaServer)
-	{
-		this.kalturaServer = kalturaServer;
-	}
+  public String getKalturaServer() {
+    return kalturaServer;
+  }
 
-	public void setExternalId(int partnerId, int uiConfId) {
-		this.externalId = String.format("%d/%d/%s", partnerId, uiConfId, mediaId);
-	}
+  public void setKalturaServer(String kalturaServer) {
+    this.kalturaServer = kalturaServer;
+  }
+
+  public void setExternalId(int partnerId, int uiConfId) {
+    this.externalId = String.format("%d/%d/%s", partnerId, uiConfId, mediaId);
+  }
 
   public void setPlayerConfig(int width, int height, boolean isV7Player) {
     PlayerConfig config = new PlayerConfig();
-	config.setHeight(height);
-	config.setWidth(width);
-	config.setVersion(isV7Player ? PlayerConfig.VERSION_V7 : PlayerConfig.VERSION_V2);
+    config.setHeight(height);
+    config.setWidth(width);
+    config.setVersion(isV7Player ? PlayerConfig.VERSION_V7 : PlayerConfig.VERSION_V2);
     this.playerConfig = config;
   }
 
   @Override
   public Optional<String> getExternalId() {
-		return Optional.of(externalId);
+    return Optional.of(externalId);
   }
 
   @Override
   public Optional<Map<String, String>> getViewerConfig() {
-	Map<String, String> viewerConfig =
-			Map.of("width", Integer.toString(playerConfig.getWidth()),
-					"height", Integer.toString(playerConfig.getHeight()),
-					"version", playerConfig.getVersion());
+    Map<String, String> viewerConfig =
+        Map.of("width", Integer.toString(playerConfig.getWidth()),
+            "height", Integer.toString(playerConfig.getHeight()),
+            "version", playerConfig.getVersion());
 
     return Optional.of(viewerConfig);
   }
 
   private static final class PlayerConfig {
-	private static final String VERSION_V2 = "V2";
-	private static final String VERSION_V7 = "V7";
+
+    private static final String VERSION_V2 = "V2";
+    private static final String VERSION_V7 = "V7";
 
     private int width;
     private int height;
     private String version;
 
-	public int getWidth() {
+    public int getWidth() {
       return width;
     }
 
@@ -171,12 +157,12 @@ public class KalturaAttachmentBean extends EquellaAttachmentBean
       this.height = height;
     }
 
-	public String getVersion() {
-	  return version;
-	}
+    public String getVersion() {
+      return version;
+    }
 
-	public void setVersion(String version) {
-	  this.version = version;
-	}
+    public void setVersion(String version) {
+      this.version = version;
+    }
   }
 }
