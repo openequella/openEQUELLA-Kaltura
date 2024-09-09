@@ -49,18 +49,14 @@ public class KalturaPreviewRenderer implements VideoPreviewRenderer
 	public void preRender(PreRenderContext context) { }
 
 	@Override
-	public SectionRenderable renderPreview(RenderContext context, Attachment attachment, ViewableItem<?> vitem,
-		String mimeType)
-	{
-		if( supports(mimeType) )
-		{
+	public SectionRenderable renderPreview(RenderContext context, Attachment attachment,
+			ViewableItem<?> vitem,
+			String mimeType) {
+		if (supports(mimeType)) {
 			String entryId = (String) attachment.getData(KalturaUtils.PROPERTY_ENTRY_ID);
 			String uuid = (String) attachment.getData(KalturaUtils.PROPERTY_KALTURA_SERVER);
 
-			if( !Check.isEmpty(entryId) && !Check.isEmpty(uuid) )
-			{
-				String uiConfId = (String) attachment.getData(KalturaUtils.PROPERTY_CUSTOM_PLAYER);
-
+			if (!Check.isEmpty(entryId) && !Check.isEmpty(uuid)) {
 				String playerId = kalturaService.kalturaPlayerId();
 
 				// This is the div where the video is embedded into.
@@ -68,7 +64,7 @@ public class KalturaPreviewRenderer implements VideoPreviewRenderer
 				playerDiv.setId(playerId);
 				playerDiv.setStyles("width: 320px; height: 180px", null, null);
 
-				// This is script tag that points to Kaltura player embed URL.
+				// This is script that points to Kaltura player embed URL.
 				TagRenderer playerScript = new AbstractComponentRenderer(new HtmlComponentState()) {
 					@Override
 					protected String getTag() {
@@ -79,7 +75,9 @@ public class KalturaPreviewRenderer implements VideoPreviewRenderer
 					protected void prepareFirstAttributes(SectionWriter writer, Map<String, String> attrs)
 							throws IOException {
 						super.prepareFirstAttributes(writer, attrs);
-						attrs.put("src", kalturaService.createPlayerEmbedUrl(attachment, playerId, true, uiConfId));
+						String uiConfId = (String) attachment.getData(KalturaUtils.PROPERTY_CUSTOM_PLAYER);
+						attrs.put("src",
+								kalturaService.createPlayerEmbedUrl(attachment, playerId, true, uiConfId));
 					}
 				};
 
@@ -98,10 +96,6 @@ public class KalturaPreviewRenderer implements VideoPreviewRenderer
 	@Override
 	public boolean supports(String mimeType)
 	{
-		if( mimeType.contains("equella/attachment-kaltura") )
-		{
-			return true;
-		}
-		return false;
-	}
+    return mimeType.contains("equella/attachment-kaltura");
+  }
 }

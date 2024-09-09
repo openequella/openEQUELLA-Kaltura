@@ -75,7 +75,7 @@ public class KalturaViewerSection extends
       height = "100%";
     }
 
-    setupKalturaKdp(info, resource, width, height);
+    setupKalturaPlayer(info, resource, width, height);
 
     return viewFactory.createTemplateResult("viewer/kalturaviewer.ftl", this);
   }
@@ -84,7 +84,7 @@ public class KalturaViewerSection extends
     return kalturaService.getByUuid(uuid);
   }
 
-  private void setupKalturaKdp(SectionInfo info, ViewItemResource resource, String width,
+  private void setupKalturaPlayer(SectionInfo info, ViewItemResource resource, String width,
       String height) {
     final IAttachment a = getAttachment(resource);
 

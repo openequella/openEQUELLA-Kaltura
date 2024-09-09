@@ -87,14 +87,15 @@ public class KalturaServiceImpl
 
   private APIOkRequestsExecutor executor = new APIOkRequestsExecutor();
 
+  private static final String DEFAULT_KALTURA_PLAYER_PREFIX = "OEQ_DEFAULT_KALTURA_PLAYER";
+
+  private static final String DEFAULT_KALTURA_PLAYER_NAME = DEFAULT_KALTURA_PLAYER_PREFIX + "_V7_LATEST";
+
   @Inject
   public KalturaServiceImpl(KalturaDao dao) {
     super(Node.KALTURA, dao);
     kalturaDao = dao;
   }
-
-  private static final String DEFAULT_KALTURA_PLAYER_PREFIX = "OEQ_DEFAULT_KALTURA_PLAYER";
-  private static final String DEFAULT_KALTURA_PLAYER_NAME = DEFAULT_KALTURA_PLAYER_PREFIX + "_V7_LATEST";
 
   // A cache to protect against excessive calls to Kaltura. There is a small risk of a period when
   // incorrect results could then be returned - however if needs be a restart can navigate it.
@@ -436,7 +437,7 @@ public class KalturaServiceImpl
   @Override
   public UiConf getPlayerConfig(KalturaServer ks, String confId) {
     return getUiConfig(ks, confId).orElseThrow(
-            () -> new RuntimeException("Failed to get Kaltura player for " + confId)
+            () -> new RuntimeException("Failed to get Kaltura player details for " + confId)
     );
   }
 
@@ -446,7 +447,8 @@ public class KalturaServiceImpl
   }
 
   @Override
-  public String createPlayerEmbedUrl(IAttachment attachment, String playerId, boolean autoEmbed, String uiConfId) {
+  public String createPlayerEmbedUrl(IAttachment attachment, String playerId, boolean autoEmbed,
+      String uiConfId) {
     String entryId = (String) attachment.getData(KalturaUtils.PROPERTY_ENTRY_ID);
 
     String ksUuid = (String) attachment.getData(KalturaUtils.PROPERTY_KALTURA_SERVER);
@@ -461,11 +463,11 @@ public class KalturaServiceImpl
 
     return MessageFormat.format(embedUrlPattern,
         Integer.toString(ks.getPartnerId()),
-            Integer.toString(ks.getSubPartnerId()),
-            Integer.toString(playerConfig.getId()),
-            embedType,
-            playerId,
-            entryId
+        Integer.toString(ks.getSubPartnerId()),
+        Integer.toString(playerConfig.getId()),
+        embedType,
+        playerId,
+        entryId
     );
   }
 
@@ -482,7 +484,7 @@ public class KalturaServiceImpl
   }
 
   /**
-   * Get UI configuration by ID. If no ID is provided, find the default ID from attachment and setting.
+   * Get UI configuration by ID. If no ID is provided, find the default ID from Kaltura setting.
    */
   private Optional<UiConf> getUiConfig(KalturaServer ks, String confId) {
     int playerId = Optional.ofNullable(confId)

@@ -64,16 +64,16 @@ public interface KalturaService extends AbstractEntityService<EntityEditingBean,
   void enable(KalturaServer ks, boolean enable);
 
   /**
-   * Get the configuration of the selected Kaltura player.
-   */
-  UiConf getPlayerConfig(KalturaServer ks, String uiConfId);
-
-  /**
    * Whether a Kaltura player configuration can be found by the provided ID.
    */
   boolean hasConf(KalturaServer ks, String confId);
 
   boolean isUp(KalturaServer ks);
+
+  /**
+   * Get the configuration of the selected Kaltura player.
+   */
+  UiConf getPlayerConfig(KalturaServer ks, String uiConfId);
 
   /**
    * Create the Kaltura player embed URL for both the v2 and v7 players. Auto embed and iframe embed
