@@ -16,6 +16,9 @@
 
 package com.tle.web.controls.kaltura;
 
+import static com.tle.core.kaltura.service.KalturaService.PLAYER_VERSION_V2;
+import static com.tle.core.kaltura.service.KalturaService.PLAYER_VERSION_V7;
+
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMap.Builder;
 import com.google.inject.Singleton;
@@ -76,8 +79,11 @@ public class KalturaAttachmentSerializer extends AbstractAttachmentSerializer
 
 		String uiConfId  = (String) cattach.getData(KalturaUtils.PROPERTY_CUSTOM_PLAYER);
 		UiConf uiConf = kalturaService.getPlayerConfig(ks, uiConfId);
-		kbean.setPlayerConfig(uiConf.getWidth(), uiConf.getHeight(), uiConf.getHtml5Url() == null);
-		kbean.setExternalId(ks.getPartnerId(), uiConf.getId());
+		kbean.setExternalId(
+				ks.getPartnerId(),
+				uiConf.getId(),
+				uiConf.getHtml5Url() == null? PLAYER_VERSION_V7: PLAYER_VERSION_V2
+		);
 
 		return kbean;
 	}

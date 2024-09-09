@@ -36,6 +36,10 @@ import com.tle.core.entity.EntityEditingBean;
 public interface KalturaService extends AbstractEntityService<EntityEditingBean, KalturaServer>,
     RemoteKalturaService {
 
+  public static final String PLAYER_VERSION_V2 = "V2";
+
+  public static final String PLAYER_VERSION_V7 = "V7";
+
   ListResponse<MediaEntry> searchMedia(Client client, Collection<String> keywords, int page,
       int limit);
 

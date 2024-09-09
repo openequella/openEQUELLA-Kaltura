@@ -39,11 +39,6 @@ public class KalturaAttachmentBean extends EquellaAttachmentBean {
    */
   private String externalId;
 
-  /**
-   * More details of the Kaltura player configured in the Kaltura Studio Management page.
-   */
-  private PlayerConfig playerConfig;
-
   @Override
   public String getRawAttachmentType() {
     return "custom/kaltura";
@@ -105,65 +100,12 @@ public class KalturaAttachmentBean extends EquellaAttachmentBean {
     this.kalturaServer = kalturaServer;
   }
 
-  public void setExternalId(int partnerId, int uiConfId) {
-    this.externalId = String.format("%d/%d/%s", partnerId, uiConfId, mediaId);
+  public void setExternalId(int partnerId, int uiConfId, String version) {
+    this.externalId = String.format("%d/%d#%s/%s", partnerId, uiConfId, version, mediaId);
   }
 
   @Override
   public Optional<String> getExternalId() {
     return Optional.of(externalId);
-  }
-
-  public void setPlayerConfig(int width, int height, boolean isV7Player) {
-    PlayerConfig config = new PlayerConfig();
-    config.setHeight(height);
-    config.setWidth(width);
-    config.setVersion(isV7Player ? PlayerConfig.VERSION_V7 : PlayerConfig.VERSION_V2);
-    this.playerConfig = config;
-  }
-
-
-  @Override
-  public Optional<Map<String, String>> getViewerConfig() {
-    Map<String, String> viewerConfig =
-        Map.of("width", Integer.toString(playerConfig.getWidth()),
-            "height", Integer.toString(playerConfig.getHeight()),
-            "version", playerConfig.getVersion());
-
-    return Optional.of(viewerConfig);
-  }
-
-  private static final class PlayerConfig {
-
-    private static final String VERSION_V2 = "V2";
-    private static final String VERSION_V7 = "V7";
-
-    private int width;
-    private int height;
-    private String version;
-
-    public int getWidth() {
-      return width;
-    }
-
-    public void setWidth(int width) {
-      this.width = width;
-    }
-
-    public int getHeight() {
-      return height;
-    }
-
-    public void setHeight(int height) {
-      this.height = height;
-    }
-
-    public String getVersion() {
-      return version;
-    }
-
-    public void setVersion(String version) {
-      this.version = version;
-    }
   }
 }
