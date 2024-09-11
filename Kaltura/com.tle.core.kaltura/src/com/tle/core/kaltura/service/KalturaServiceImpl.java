@@ -447,7 +447,7 @@ public class KalturaServiceImpl
       Client client = getKalturaClient(ks, SessionType.ADMIN);
       return execute(UiConfService.get(playerId).build(client));
     } catch (APIException | NumberFormatException e) {
-      LOGGER.error("Failed to get Kaltura player details for " + confId + ", use the OEQ default player instead.", e);
+      LOGGER.warn("Failed to get Kaltura player details for " + confId + ", using the OEQ default player instead.", e);
       return  getDefaultKdpUiConf(ks);
     }
   }
