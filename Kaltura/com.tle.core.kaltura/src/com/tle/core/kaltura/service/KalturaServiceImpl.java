@@ -70,6 +70,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import javax.inject.Inject;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
@@ -90,6 +91,8 @@ public class KalturaServiceImpl
   private static final String DEFAULT_KALTURA_PLAYER_PREFIX = "OEQ_DEFAULT_KALTURA_PLAYER";
 
   private static final String DEFAULT_KALTURA_PLAYER_NAME = DEFAULT_KALTURA_PLAYER_PREFIX + "_V7_LATEST";
+
+  private static final String KALTURA_CDN = "https://cdnapisec.kaltura.com";
 
   @Inject
   public KalturaServiceImpl(KalturaDao dao) {
@@ -430,15 +433,22 @@ public class KalturaServiceImpl
   }
 
   @Override
-  public boolean hasConf(KalturaServer ks, String confId) {
-    return getUiConfig(ks, confId).isPresent();
-  }
-
-  @Override
   public UiConf getPlayerConfig(KalturaServer ks, String confId) {
-    return getUiConfig(ks, confId).orElseThrow(
-            () -> new RuntimeException("Failed to get Kaltura player details for " + confId)
-    );
+    try {
+      int playerId = Optional.ofNullable(confId)
+          .filter(StringUtils::isNotEmpty)
+          .map(Integer::parseInt)
+          .orElseGet( () -> {
+            LOGGER.debug("No conf ID provided, use the ID configured in Kaltura setting instead.");
+            return ks.getKdpUiConfId();
+          });
+
+      Client client = getKalturaClient(ks, SessionType.ADMIN);
+      return execute(UiConfService.get(playerId).build(client));
+    } catch (APIException | NumberFormatException e) {
+      LOGGER.error("Failed to get Kaltura player details for " + confId + ", use the OEQ default player instead.", e);
+      return  getDefaultKdpUiConf(ks);
+    }
   }
 
   @Override
@@ -457,11 +467,14 @@ public class KalturaServiceImpl
     UiConf playerConfig = getPlayerConfig(ks, uiConfId);
     String embedType = autoEmbed ? "autoembed" : "iframeembed";
 
+    // The Kaltura support team has confirmed that using `playerConfig.getHtml5Url() == null`  is a valid approach
+    // to determine whether a player is v2 or v7.
     String embedUrlPattern = playerConfig.getHtml5Url() == null ?
-        "https://cdnapisec.kaltura.com/p/{0}/embedPlaykitJs/uiconf_id/{2}/?{3}=true&targetId={4}&entry_id={5}":
-        "https://cdnapisec.kaltura.com/p/{0}/sp/{1}/embedIframeJs/uiconf_id/{2}/partner_id/{0}?{3}=true&playerId={4}&entry_id={5}";
+        "{0}/p/{1}/embedPlaykitJs/uiconf_id/{3}/?{4}=true&targetId={5}&entry_id={6}":
+        "{0}/p/{1}/sp/{2}/embedIframeJs/uiconf_id/{3}/partner_id/{1}?{4}=true&playerId={5}&entry_id={6}";
 
     return MessageFormat.format(embedUrlPattern,
+        KALTURA_CDN,
         Integer.toString(ks.getPartnerId()),
         Integer.toString(ks.getSubPartnerId()),
         Integer.toString(playerConfig.getId()),
@@ -469,33 +482,5 @@ public class KalturaServiceImpl
         playerId,
         entryId
     );
-  }
-
-  /**
-   * Attempt to get UI config ID from Kaltura setting, or use the ID of OEQ default player if not found.
-   *
-   */
-  private int getUiConfIdFromSetting(KalturaServer ks)
-  {
-    return Optional.of(Integer.toString(ks.getKdpUiConfId()))
-            .filter(confId -> !Check.isEmpty(confId))
-            .map(Integer::parseInt)
-            .orElseGet(() -> getDefaultKdpUiConf(ks).getId());
-  }
-
-  /**
-   * Get UI configuration by ID. If no ID is provided, find the default ID from Kaltura setting.
-   */
-  private Optional<UiConf> getUiConfig(KalturaServer ks, String confId) {
-    int playerId = Optional.ofNullable(confId)
-            .filter(id -> !Check.isEmpty(id.trim()))
-            .map(Integer::parseInt).orElseGet(() -> getUiConfIdFromSetting(ks));
-    try {
-      Client client = getKalturaClient(ks, SessionType.ADMIN);
-      return Optional.of(execute(UiConfService.get(playerId).build(client)));
-    } catch (APIException e) {
-      LOGGER.error("Failed to get Kaltura player", e);
-      return Optional.empty();
-    }
   }
 }
