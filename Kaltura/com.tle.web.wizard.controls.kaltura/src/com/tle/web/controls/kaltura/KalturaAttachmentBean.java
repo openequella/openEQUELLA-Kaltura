@@ -101,7 +101,7 @@ public class KalturaAttachmentBean extends EquellaAttachmentBean {
   }
 
   public void setExternalId(int partnerId, int uiConfId, String version) {
-    this.externalId = String.format("%d/%d#%s/%s", partnerId, uiConfId, version, mediaId);
+    this.externalId = String.format("%d/%d-%s/%s", partnerId, uiConfId, version, mediaId);
   }
 
   @Override
