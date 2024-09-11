@@ -261,12 +261,10 @@ public class KalturaServiceImpl
     // to differentiate where the player is created (e.g. through API or in KMC).
     equellaKdpUiConf.setObjType(UiConfObjType.PLAYER_V3);
     equellaKdpUiConf.setCreationMode(UiConfCreationMode.ADVANCED);
-    equellaKdpUiConf.setSwfUrl("/");
     equellaKdpUiConf.setName(DEFAULT_KALTURA_PLAYER_NAME);
     equellaKdpUiConf.setTags("autodeploy,kms_v5.0.0,kms_mainplayer,kalturaPlayerJs,player,ovp");
     equellaKdpUiConf.setWidth(560);
     equellaKdpUiConf.setHeight(395);
-    equellaKdpUiConf.setUseCdn(true);
     equellaKdpUiConf.setConfVars(defaultV7PlayerConf());
 
     return execute(UiConfService.add(equellaKdpUiConf).build(client));
