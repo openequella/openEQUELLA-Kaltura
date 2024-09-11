@@ -1,0 +1,32 @@
+{
+  "versions": {
+    "kaltura-ovp-player": "{latest}",
+    "playkit-kaltura-live": "{latest}",
+    "playkit-visibility": "{latest}",
+    "playkit-dual-screen": "{latest}",
+    "playkit-ivq": "{latest}",
+    "playkit-hotspots": "{latest}",
+    "playkit-moderation": "{latest}",
+    "playkit-playlist": "{latest}",
+    "playkit-transcript": "{latest}",
+    "playkit-navigation": "{latest}",
+    "playkit-qna": "{latest}",
+    "playkit-image-player": "{latest}"
+  },
+  "langs": [
+    "en",
+    "zh_cn",
+    "zh_tw",
+    "ja",
+    "ko",
+    "it",
+    "es",
+    "fi",
+    "nl",
+    "fr",
+    "ar",
+    "ru",
+    "de",
+    "pt_br"
+  ]
+}

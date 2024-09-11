@@ -16,9 +16,11 @@
 
 package com.tle.core.kaltura.service;
 
+import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.io.Resources;
 import com.google.inject.Singleton;
 import com.kaltura.client.APIOkRequestsExecutor;
 import com.kaltura.client.Client;
@@ -246,25 +248,26 @@ public class KalturaServiceImpl
     }
   }
 
-  private UiConf createDefaultKDPUiConf(Client client) throws IOException, APIException {
-    // Standard configurations copied from Kaltura default v7 player.
-    final String CONF_VARS = "{\"versions\":{\"kaltura-ovp-player\":\"{latest}\",\"playkit-kaltura-live\":\"{latest}\",\"playkit-visibility\":\"{latest}\",\"playkit-dual-screen\":\"{latest}\",\"playkit-ivq\":\"{latest}\",\"playkit-hotspots\":\"{latest}\",\"playkit-moderation\":\"{latest}\",\"playkit-playlist\":\"{latest}\",\"playkit-transcript\":\"{latest}\",\"playkit-navigation\":\"{latest}\",\"playkit-qna\":\"{latest}\",\"playkit-image-player\":\"{latest}\"},\"langs\":[\"en\",\"zh_cn\",\"zh_tw\",\"ja\",\"ko\",\"it\",\"es\",\"fi\",\"nl\",\"fr\",\"ar\",\"ru\",\"de\",\"pt_br\"]}";
-    final String TAGS = "autodeploy, kms_v5.0.0, kms_mainplayer,kalturaPlayerJs,player,ovp";
-    final int WIDTH = 560;
-    final int HEIGHT = 395;
-    final String SWF_URL = "/";
+  private String defaultV7PlayerConf() throws IOException {
+    return Resources.toString(
+        getClass().getResource("default_v7_player_conf.json"),
+        Charsets.UTF_8
+    );
+  }
 
+  private UiConf createDefaultKDPUiConf(Client client) throws IOException, APIException {
     UiConf equellaKdpUiConf = new UiConf();
     // Not entirely sure the difference between PLAYER, PLAYER_V3 AND PLAYER_SL. Maybe used
     // to differentiate where the player is created (e.g. through API or in KMC).
     equellaKdpUiConf.setObjType(UiConfObjType.PLAYER_V3);
     equellaKdpUiConf.setCreationMode(UiConfCreationMode.ADVANCED);
-    equellaKdpUiConf.setSwfUrl(SWF_URL);
+    equellaKdpUiConf.setSwfUrl("/");
     equellaKdpUiConf.setName(DEFAULT_KALTURA_PLAYER_NAME);
-    equellaKdpUiConf.setTags(TAGS);
-    equellaKdpUiConf.setWidth(WIDTH);
-    equellaKdpUiConf.setHeight(HEIGHT);
-    equellaKdpUiConf.setConfVars(CONF_VARS);
+    equellaKdpUiConf.setTags("autodeploy,kms_v5.0.0,kms_mainplayer,kalturaPlayerJs,player,ovp");
+    equellaKdpUiConf.setWidth(560);
+    equellaKdpUiConf.setHeight(395);
+    equellaKdpUiConf.setUseCdn(true);
+    equellaKdpUiConf.setConfVars(defaultV7PlayerConf());
 
     return execute(UiConfService.add(equellaKdpUiConf).build(client));
   }
