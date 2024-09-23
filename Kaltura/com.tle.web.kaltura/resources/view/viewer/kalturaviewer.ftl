@@ -4,5 +4,6 @@
 <@css "kalturaiframe.css" />
 
 <#assign TEMP_body>
-	<@render section=s.kdpDiv />
+	<div id="${m.playerId}" style="width: ${m.width}; height: ${m.height}"></div>
+	<script src="${m.viewerUrl}"></script>
 </#assign>
