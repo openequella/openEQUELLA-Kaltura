@@ -19,107 +19,93 @@ package com.tle.web.controls.kaltura;
 import java.util.Date;
 
 import com.tle.web.api.item.equella.interfaces.beans.EquellaAttachmentBean;
+import java.util.Map;
 import java.util.Optional;
 
 @SuppressWarnings("nls")
-public class KalturaAttachmentBean extends EquellaAttachmentBean
-{
-	private String mediaId;
-	private String title;
-	private Date uploadedDate;
-	private String thumbUrl;
-	private String kalturaServer;
-	private String tags;
-	private long duration;
+public class KalturaAttachmentBean extends EquellaAttachmentBean {
 
-	/**
-	 * A string which is made up of the core elements required to generate a embedded Kaltura viewer.
-	 * It has the format of {@code <partner_id>/<uiconf_id>/<entryId>}.
-	 */
-	private String externalId;
+  private String mediaId;
+  private String title;
+  private Date uploadedDate;
+  private String thumbUrl;
+  private String kalturaServer;
+  private String tags;
+  private long duration;
 
-	@Override
-	public String getRawAttachmentType()
-	{
-		return "custom/kaltura";
-	}
+  /**
+   * A string which is made up of the core elements required to generate a embedded Kaltura viewer.
+   * It has the format of {@code <partner_id>/<uiconf_id>/<entryId>}.
+   */
+  private String externalId;
 
-	public String getMediaId()
-	{
-		return mediaId;
-	}
+  @Override
+  public String getRawAttachmentType() {
+    return "custom/kaltura";
+  }
 
-	public void setMediaId(String mediaId)
-	{
-		this.mediaId = mediaId;
-	}
+  public String getMediaId() {
+    return mediaId;
+  }
 
-	public String getTitle()
-	{
-		return title;
-	}
+  public void setMediaId(String mediaId) {
+    this.mediaId = mediaId;
+  }
 
-	public void setTitle(String title)
-	{
-		this.title = title;
-	}
+  public String getTitle() {
+    return title;
+  }
 
-	public Date getUploadedDate()
-	{
-		return uploadedDate;
-	}
+  public void setTitle(String title) {
+    this.title = title;
+  }
 
-	public void setUploadedDate(Date uploadedDate)
-	{
-		this.uploadedDate = uploadedDate;
-	}
+  public Date getUploadedDate() {
+    return uploadedDate;
+  }
 
-	public String getThumbUrl()
-	{
-		return thumbUrl;
-	}
+  public void setUploadedDate(Date uploadedDate) {
+    this.uploadedDate = uploadedDate;
+  }
 
-	public void setThumbUrl(String thumbUrl)
-	{
-		this.thumbUrl = thumbUrl;
-	}
+  public String getThumbUrl() {
+    return thumbUrl;
+  }
 
-	public String getTags()
-	{
-		return tags;
-	}
+  public void setThumbUrl(String thumbUrl) {
+    this.thumbUrl = thumbUrl;
+  }
 
-	public void setTags(String tags)
-	{
-		this.tags = tags;
-	}
+  public String getTags() {
+    return tags;
+  }
 
-	public long getDuration()
-	{
-		return duration;
-	}
+  public void setTags(String tags) {
+    this.tags = tags;
+  }
 
-	public void setDuration(long duration)
-	{
-		this.duration = duration;
-	}
+  public long getDuration() {
+    return duration;
+  }
 
-	public String getKalturaServer()
-	{
-		return kalturaServer;
-	}
+  public void setDuration(long duration) {
+    this.duration = duration;
+  }
 
-	public void setKalturaServer(String kalturaServer)
-	{
-		this.kalturaServer = kalturaServer;
-	}
+  public String getKalturaServer() {
+    return kalturaServer;
+  }
 
-	public void setExternalId(int partnerId, int uiConfId) {
-		this.externalId = String.format("%d/%d/%s", partnerId, uiConfId, mediaId);
-	}
+  public void setKalturaServer(String kalturaServer) {
+    this.kalturaServer = kalturaServer;
+  }
 
-	@Override
-	public Optional<String> getExternalId() {
-		return Optional.of(externalId);
-	}
+  public void setExternalId(int partnerId, int uiConfId, String version) {
+    this.externalId = String.format("%d/%d-%s/%s", partnerId, uiConfId, version, mediaId);
+  }
+
+  @Override
+  public Optional<String> getExternalId() {
+    return Optional.of(externalId);
+  }
 }

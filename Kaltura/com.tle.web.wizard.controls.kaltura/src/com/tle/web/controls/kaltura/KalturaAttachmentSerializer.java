@@ -16,9 +16,13 @@
 
 package com.tle.web.controls.kaltura;
 
+import static com.tle.core.kaltura.service.KalturaService.PLAYER_VERSION_V2;
+import static com.tle.core.kaltura.service.KalturaService.PLAYER_VERSION_V7;
+
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMap.Builder;
 import com.google.inject.Singleton;
+import com.kaltura.client.types.UiConf;
 import com.tle.beans.item.attachments.Attachment;
 import com.tle.beans.item.attachments.CustomAttachment;
 import com.tle.common.kaltura.KalturaUtils;
@@ -72,7 +76,14 @@ public class KalturaAttachmentSerializer extends AbstractAttachmentSerializer
 		}
 
 		KalturaServer ks = kalturaService.getByUuid(kbean.getKalturaServer());
-		kbean.setExternalId(ks.getPartnerId(), kalturaService.getDefaultKdpUiConf(ks).getId());
+
+		String uiConfId  = (String) cattach.getData(KalturaUtils.PROPERTY_CUSTOM_PLAYER);
+		UiConf uiConf = kalturaService.getPlayerConfig(ks, uiConfId);
+		kbean.setExternalId(
+				ks.getPartnerId(),
+				uiConf.getId(),
+				uiConf.getHtml5Url() == null? PLAYER_VERSION_V7: PLAYER_VERSION_V2
+		);
 
 		return kbean;
 	}

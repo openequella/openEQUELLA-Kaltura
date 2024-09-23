@@ -7,12 +7,10 @@
 
 <@detailArea >
 	<@a.div id="mediapreview">
-		<#assign dataurl = m.specificDetail['dataurl'].second >
-		<#if dataurl??>
-			<div class="preview-container">
-				<@render section=s.divKdp />
-			</div>
-		</#if>
+		<div class="preview-container">
+			<div id="${m.playerId}" style="width: 300px; height: 200px"></div>
+			<script src="${m.viewerUrl}"></script>
+		</div>
 	</@a.div>
 	<@editArea>
 		<#if m.showPlayers>

@@ -25,7 +25,6 @@ import java.util.List;
 
 import javax.inject.Inject;
 
-import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import com.kaltura.client.types.APIException;
 import com.kaltura.client.Client;
@@ -38,7 +37,6 @@ import com.tle.beans.item.attachments.Attachment;
 import com.tle.beans.item.attachments.CustomAttachment;
 import com.tle.beans.item.attachments.IAttachment;
 import com.tle.common.Check;
-import com.tle.common.Pair;
 import com.tle.common.Utils;
 import com.tle.common.kaltura.KalturaUtils;
 import com.tle.common.kaltura.admin.control.KalturaSettings;
@@ -64,7 +62,6 @@ import com.tle.web.sections.equella.annotation.PlugKey;
 import com.tle.web.sections.equella.annotation.PlugURL;
 import com.tle.web.sections.equella.listmodel.EnumListModel;
 import com.tle.web.sections.equella.render.DateRendererFactory;
-import com.tle.web.sections.equella.utils.KeyOption;
 import com.tle.web.sections.equella.utils.VoidKeyOption;
 import com.tle.web.sections.events.RenderContext;
 import com.tle.web.sections.events.js.JSHandler;
@@ -76,7 +73,6 @@ import com.tle.web.sections.js.generic.ReloadHandler;
 import com.tle.web.sections.js.generic.StatementHandler;
 import com.tle.web.sections.js.generic.expression.FunctionCallExpression;
 import com.tle.web.sections.js.generic.expression.NotEqualsExpression;
-import com.tle.web.sections.js.generic.expression.ObjectExpression;
 import com.tle.web.sections.js.generic.expression.StringExpression;
 import com.tle.web.sections.js.generic.function.ExternallyDefinedFunction;
 import com.tle.web.sections.js.generic.function.IncludeFile;
@@ -110,7 +106,6 @@ import com.tle.web.sections.standard.renderers.HeadingRenderer;
 import com.tle.web.sections.standard.renderers.ImageRenderer;
 import com.tle.web.sections.standard.renderers.LinkRenderer;
 import com.tle.web.sections.standard.renderers.popup.PopupLinkRenderer;
-import com.tle.web.sections.swfobject.SwfObject;
 import com.tle.web.viewurl.ItemSectionInfo;
 import com.tle.web.viewurl.ViewableResource;
 import com.tle.web.viewurl.attachments.AttachmentResourceService;
@@ -129,8 +124,6 @@ public class KalturaHandler extends BasicAbstractAttachmentHandler<KalturaHandle
 	@PlugURL("images/kalturalogotrans.png")
 	private static String KALTURA_LOGO_URL;
 
-	@PlugURL("js/kaltura.js")
-	private static String KALTURA;
 	@PlugURL("js/UploadControlEntry.js")
 	private static String UPLOAD_CONTROL;
 	@PlugURL("js/kalturaopts.js")
@@ -288,14 +281,16 @@ public class KalturaHandler extends BasicAbstractAttachmentHandler<KalturaHandle
 				pager.setup(info, (mediaList.getTotalCount() - 1) / PER_PAGE + 1, PER_PAGE);
 
 				final List<Option<Void>> rv = new ArrayList<Option<Void>>();
-				String uiConfId = getKdpUiConfId(info, ks, false);
 
 				for( MediaEntry entry : mediaList.getObjects() )
 				{
 					KalturaResultOption result = new KalturaResultOption(entry.getId());
 
-					final LinkRenderer titleLink = new PopupLinkRenderer(
-							new HtmlLinkState(new SimpleBookmark(createFlashEmbedUrl(ks, entry.getId(), uiConfId))));
+					Attachment attachment = createAttachment(entry.getId());
+					// Use iframe embed here.
+					String embedUrl = kalturaService.createPlayerEmbedUrl(
+							attachment, kalturaService.kalturaPlayerId(), false, null);
+					final LinkRenderer titleLink = new PopupLinkRenderer(new HtmlLinkState(new SimpleBookmark(embedUrl)));
 
 					titleLink.setLabel(new TextLabel(entry.getName()));
 					result.setLink(titleLink);
@@ -353,35 +348,6 @@ public class KalturaHandler extends BasicAbstractAttachmentHandler<KalturaHandle
 				dialogState.getDialog().getFooterUpdate(tree, events.getEventHandler("updateButtons")));
 
 		results.setEventHandler(JSHandler.EVENT_CHANGE, updateHandler);
-	}
-
-	private String createFlashEmbedUrl(KalturaServer ks, String entryId, String uiConfId)
-	{
-		return MessageFormat.format("{0}/kwidget/wid/_{1}/uiconf_id/{2}/entry_id/{3}", ks.getEndPoint(),
-				Integer.toString(ks.getPartnerId()), uiConfId, entryId);
-	}
-
-	private String getKdpUiConfId(SectionInfo info, KalturaServer ks, boolean useCustom)
-	{
-		// Player selection
-		if( useCustom )
-		{
-			String uiConfId = players.getSelectedValueAsString(info);
-			if( !Check.isEmpty(uiConfId) && kalturaService.hasConf(ks, uiConfId) )
-			{
-				return uiConfId;
-			}
-		}
-
-		// Server default
-		String uiConfId = Integer.toString(ks.getKdpUiConfId());
-		if( !Check.isEmpty(uiConfId) && kalturaService.hasConf(ks, uiConfId) )
-		{
-			return uiConfId;
-		}
-
-		// EQUELLA default
-		return Integer.toString(kalturaService.getDefaultKdpUiConf(ks).getId());
 	}
 
 	public Client getKalturaClient(KalturaServer ks, SessionType type)
@@ -485,19 +451,12 @@ public class KalturaHandler extends BasicAbstractAttachmentHandler<KalturaHandle
 								finishedCallback)));
 	}
 
-	private void setupKalturaKdp(SectionInfo context, KalturaServer ks, String flashUrl)
+	private void setupKalturaPlayer(SectionInfo context, IAttachment attachment)
 	{
-		ObjectExpression kdpVars = new ObjectExpression();
-
-		kdpVars.put("flashVersion", "9.0.0");
-		kdpVars.put("width", "300");
-		kdpVars.put("height", "200");
-		kdpVars.put("embedUrl", flashUrl);
-
-		divKdp.addReadyStatements(context,
-				new FunctionCallStatement(new FunctionCallExpression(new ExternallyDefinedFunction("setupKDP",
-						SwfObject.PRERENDER, new IncludeFile(KALTURA), new IncludeFile(createHtml5embed(ks))),
-						divKdp.getElementId(context), kdpVars)));
+		KalturaHandlerModel model = getModel(context);
+		String playerId = kalturaService.kalturaPlayerId();
+		model.setPlayerId(playerId);
+		model.setViewerUrl(kalturaService.createPlayerEmbedUrl(attachment, playerId, true, players.getSelectedValueAsString(context)));
 	}
 
 	private SectionRenderable renderChoice(RenderContext context, DialogRenderOptions renderOptions)
@@ -526,13 +485,10 @@ public class KalturaHandler extends BasicAbstractAttachmentHandler<KalturaHandle
 
 		KalturaHandlerModel model = getModel(context);
 		final Attachment a = getDetailsAttachment(context);
-		String embedUrl = createFlashEmbedUrl(ks, (String) a.getData(KalturaUtils.PROPERTY_ENTRY_ID),
-				getKdpUiConfId(context, ks, true));
-		model.addSpecificDetail("dataurl", new Pair<Label, Object>(null, embedUrl));
 		model.setShowPlayers(players.getListModel().getOptions(context).size() > 1);
 
 		// Setup preview embed
-		setupKalturaKdp(context, ks, embedUrl);
+		setupKalturaPlayer(context, a);
 
 		// Get common details from viewable resource
 		ItemSectionInfo itemInfo = context.getAttributeForClass(ItemSectionInfo.class);
@@ -782,6 +738,8 @@ public class KalturaHandler extends BasicAbstractAttachmentHandler<KalturaHandle
 		private boolean searchPerformed;
 		private SectionRenderable kalturaLogo;
 		private Label kalturaServer;
+		private String playerId;
+		private String viewerUrl;
 
 		public List<KalturaUploadInfo> getUploads()
 		{
@@ -844,6 +802,22 @@ public class KalturaHandler extends BasicAbstractAttachmentHandler<KalturaHandle
 		public void setKalturaServer(Label kalturaServer)
 		{
 			this.kalturaServer = kalturaServer;
+		}
+
+		public String getPlayerId() {
+			return playerId;
+		}
+
+		public void setPlayerId(String playerId) {
+			this.playerId = playerId;
+		}
+
+		public String getViewerUrl() {
+			return viewerUrl;
+		}
+
+		public void setViewerUrl(String viewerUrl) {
+			this.viewerUrl = viewerUrl;
 		}
 	}
 
