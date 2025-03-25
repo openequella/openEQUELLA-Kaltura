@@ -1,7 +1,7 @@
 lazy val Kaltura = config("kaltura") describedAs("kaltura jars")
 lazy val CustomCompile = config("compile") extend Kaltura
 
-libraryDependencies += "com.kaltura" % "kalturaApiClient" % "17.18.1" % Kaltura
+libraryDependencies += "com.kaltura" % "KalturaApiClient" % "21.12.0" % Kaltura
 
 excludeDependencies := Seq(
   "commons-logging" % "commons-logging",
