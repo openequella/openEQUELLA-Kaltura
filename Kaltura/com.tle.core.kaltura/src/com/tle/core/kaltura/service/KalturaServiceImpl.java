@@ -213,15 +213,19 @@ public class KalturaServiceImpl
     return conf;
   }
 
+  private String playerConfigCacheKey(String uuid, int confId) {
+    return uuid + ":" + confId;
+  }
+
   private Optional<UiConf> fetchCachedPlayerConfig(KalturaServer ks, int confId) {
     return Optional.ofNullable(ks.getUuid())
-        .map(uuid -> uuid + ":" + confId)
+        .map(uuid -> playerConfigCacheKey(uuid, confId))
         .map(playerConfigCache::getIfPresent);
   }
 
   private UiConf putCachedPlayerConfig(KalturaServer ks, int confId, UiConf conf) {
     Optional.ofNullable(ks.getUuid())
-        .ifPresent(uuid -> playerConfigCache.put(uuid + ":" + confId, conf));
+        .ifPresent(uuid -> playerConfigCache.put(playerConfigCacheKey(uuid, confId), conf));
 
     return conf;
   }
