@@ -88,11 +88,12 @@ public class KalturaServiceImpl
 
   protected final KalturaDao kalturaDao;
 
-  private APIOkRequestsExecutor executor = new APIOkRequestsExecutor();
+  private final APIOkRequestsExecutor executor = new APIOkRequestsExecutor();
 
   private static final String DEFAULT_KALTURA_PLAYER_PREFIX = "OEQ_DEFAULT_KALTURA_PLAYER";
 
-  private static final String DEFAULT_KALTURA_PLAYER_NAME = DEFAULT_KALTURA_PLAYER_PREFIX + "_V7_LATEST";
+  private static final String DEFAULT_KALTURA_PLAYER_NAME =
+      DEFAULT_KALTURA_PLAYER_PREFIX + "_V7_LATEST";
 
   private static final String KALTURA_CDN = "https://cdnapisec.kaltura.com";
 
@@ -105,6 +106,11 @@ public class KalturaServiceImpl
   // A cache to protect against excessive calls to Kaltura. There is a small risk of a period when
   // incorrect results could then be returned - however if needs be a restart can navigate it.
   private final Cache<String, UiConf> defaultUiConfCache =
+      CacheBuilder.newBuilder().expireAfterWrite(1, TimeUnit.HOURS).build();
+
+  // This cache is similar to the above but was introduced due to performance issues in the New UI
+  // search results via search2.
+  private final Cache<String, UiConf> playerConfigCache =
       CacheBuilder.newBuilder().expireAfterWrite(1, TimeUnit.HOURS).build();
 
   private <T> T execute(RequestElement<T> request) throws APIException {
@@ -197,8 +203,8 @@ public class KalturaServiceImpl
     }
   }
 
-  private UiConf fetchCachedUiConf(KalturaServer ks) {
-    return Optional.ofNullable(ks.getUuid()).map(defaultUiConfCache::getIfPresent).orElse(null);
+  private Optional<UiConf> fetchCachedUiConf(KalturaServer ks) {
+    return Optional.ofNullable(ks.getUuid()).map(defaultUiConfCache::getIfPresent);
   }
 
   private UiConf putCachedUiConf(KalturaServer ks, UiConf conf) {
@@ -207,11 +213,34 @@ public class KalturaServiceImpl
     return conf;
   }
 
+  private String playerConfigCacheKey(String uuid, int confId) {
+    return uuid + ":" + confId;
+  }
+
+  private Optional<UiConf> fetchCachedPlayerConfig(KalturaServer ks, int confId) {
+    return Optional.ofNullable(ks.getUuid())
+        .map(uuid -> playerConfigCacheKey(uuid, confId))
+        .map(playerConfigCache::getIfPresent);
+  }
+
+  private UiConf putCachedPlayerConfig(KalturaServer ks, int confId, UiConf conf) {
+    Optional.ofNullable(ks.getUuid())
+        .ifPresent(uuid -> playerConfigCache.put(playerConfigCacheKey(uuid, confId), conf));
+
+    return conf;
+  }
+
+  private void invalidateCachesForServer(String uuid) {
+    defaultUiConfCache.invalidate(uuid);
+    // Invalidate all player config cache entries for this server
+    playerConfigCache.asMap().keySet().removeIf(key -> key.startsWith(uuid + ":"));
+  }
+
   @Override
   public UiConf getDefaultKdpUiConf(KalturaServer ks) {
-    UiConf conf = fetchCachedUiConf(ks);
-    if (conf != null) {
-      return conf;
+    Optional<UiConf> cachedConf = fetchCachedUiConf(ks);
+    if (cachedConf.isPresent()) {
+      return cachedConf.get();
     }
 
     try {
@@ -223,6 +252,7 @@ public class KalturaServiceImpl
 
       ListResponse<UiConf> uiList = execute(UiConfService.list(kcf).build(kc));
 
+      UiConf conf;
       if (uiList.getTotalCount() == 0) {
         // No Configs add default
         conf = createDefaultKDPUiConf(kc);
@@ -250,9 +280,7 @@ public class KalturaServiceImpl
 
   private String defaultV7PlayerConf() throws IOException {
     return Resources.toString(
-        getClass().getResource("default_v7_player_conf.json"),
-        Charsets.UTF_8
-    );
+        getClass().getResource("default_v7_player_conf.json"), Charsets.UTF_8);
   }
 
   private UiConf createDefaultKDPUiConf(Client client) throws IOException, APIException {
@@ -408,6 +436,8 @@ public class KalturaServiceImpl
     validate(null, oldServer);
 
     kalturaDao.update(oldServer);
+
+    invalidateCachesForServer(uuid);
   }
 
   // The method 'throws RuntimeException', but seeing as that throws
@@ -436,19 +466,32 @@ public class KalturaServiceImpl
   @Override
   public UiConf getPlayerConfig(KalturaServer ks, String confId) {
     try {
-      int playerId = Optional.ofNullable(confId)
-          .filter(StringUtils::isNotEmpty)
-          .map(Integer::parseInt)
-          .orElseGet( () -> {
-            LOGGER.debug("No conf ID provided, use the ID configured in Kaltura setting instead.");
-            return ks.getKdpUiConfId();
-          });
+      int playerId =
+          Optional.ofNullable(confId)
+              .filter(StringUtils::isNotEmpty)
+              .map(Integer::parseInt)
+              .orElseGet(
+                  () -> {
+                    LOGGER.debug(
+                        "No conf ID provided, use the ID configured in Kaltura setting instead.");
+                    return ks.getKdpUiConfId();
+                  });
+
+      Optional<UiConf> cachedConf = fetchCachedPlayerConfig(ks, playerId);
+      if (cachedConf.isPresent()) {
+        return cachedConf.get();
+      }
 
       Client client = getKalturaClient(ks, SessionType.ADMIN);
-      return execute(UiConfService.get(playerId).build(client));
+      UiConf conf = execute(UiConfService.get(playerId).build(client));
+      return putCachedPlayerConfig(ks, playerId, conf);
     } catch (APIException | NumberFormatException e) {
-      LOGGER.warn("Failed to get Kaltura player details for " + confId + ", using the OEQ default player instead.", e);
-      return  getDefaultKdpUiConf(ks);
+      LOGGER.warn(
+          "Failed to get Kaltura player details for {}, using the OEQ default player instead.",
+          confId,
+          e);
+      // Intentionally not caching the fallback result to encourage fixing configuration issues
+      return getDefaultKdpUiConf(ks);
     }
   }
 
@@ -458,8 +501,8 @@ public class KalturaServiceImpl
   }
 
   @Override
-  public String createPlayerEmbedUrl(IAttachment attachment, String playerId, boolean autoEmbed,
-      String uiConfId) {
+  public String createPlayerEmbedUrl(
+      IAttachment attachment, String playerId, boolean autoEmbed, String uiConfId) {
     String entryId = (String) attachment.getData(KalturaUtils.PROPERTY_ENTRY_ID);
 
     String ksUuid = (String) attachment.getData(KalturaUtils.PROPERTY_KALTURA_SERVER);
@@ -468,20 +511,22 @@ public class KalturaServiceImpl
     UiConf playerConfig = getPlayerConfig(ks, uiConfId);
     String embedType = autoEmbed ? "autoembed" : "iframeembed";
 
-    // The Kaltura support team has confirmed that using `playerConfig.getHtml5Url() == null`  is a valid approach
+    // The Kaltura support team has confirmed that using `playerConfig.getHtml5Url() == null`  is a
+    // valid approach
     // to determine whether a player is v2 or v7.
-    String embedUrlPattern = playerConfig.getHtml5Url() == null ?
-        "{0}/p/{1}/embedPlaykitJs/uiconf_id/{3}/?{4}=true&targetId={5}&entry_id={6}":
-        "{0}/p/{1}/sp/{2}/embedIframeJs/uiconf_id/{3}/partner_id/{1}?{4}=true&playerId={5}&entry_id={6}";
+    String embedUrlPattern =
+        playerConfig.getHtml5Url() == null
+            ? "{0}/p/{1}/embedPlaykitJs/uiconf_id/{3}/?{4}=true&targetId={5}&entry_id={6}"
+            : "{0}/p/{1}/sp/{2}/embedIframeJs/uiconf_id/{3}/partner_id/{1}?{4}=true&playerId={5}&entry_id={6}";
 
-    return MessageFormat.format(embedUrlPattern,
+    return MessageFormat.format(
+        embedUrlPattern,
         KALTURA_CDN,
         Integer.toString(ks.getPartnerId()),
         Integer.toString(ks.getSubPartnerId()),
         Integer.toString(playerConfig.getId()),
         embedType,
         playerId,
-        entryId
-    );
+        entryId);
   }
 }
